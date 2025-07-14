@@ -1,0 +1,52 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 6
+    paths:
+        - .
+    excludePaths:
+        - vendor/
+        - node_modules/
+        - tests/
+        - cycle-*/
+        - docs/
+    scanFiles:
+        - moneyquiz.php
+    scanDirectories:
+        - .
+    bootstrapFiles:
+        - tests/phpstan-bootstrap.php
+    ignoreErrors:
+        # Ignore WordPress global variables
+        - '#^Variable \$wpdb might not be defined#'
+        - '#^Variable \$wp_version might not be defined#'
+        - '#^Call to an undefined function __()|_e()#'
+        - '#^Access to an undefined property wpdb::#'
+        
+        # Ignore WordPress functions
+        - '#^Function get_option invoked with#'
+        - '#^Function add_action invoked with#'
+        - '#^Function wp_enqueue_script invoked with#'
+        
+        # Allow dynamic properties for legacy code
+        - '#^Access to an undefined property#'
+        
+        # Ignore specific Money Quiz patterns
+        - '#TABLE_MQ_#'
+        
+    reportUnmatchedIgnoredErrors: false
+    treatPhpDocTypesAsCertain: false
+    
+    # WordPress specific settings
+    dynamicConstantNames:
+        - ABSPATH
+        - WP_DEBUG
+        - WP_DEBUG_LOG
+        - WP_DEBUG_DISPLAY
+        - MONEYQUIZ_VERSION
+        - TABLE_MQ_PROSPECTS
+        - TABLE_MQ_TAKEN
+        - TABLE_MQ_RESULTS
+        - TABLE_MQ_MASTER
+        - TABLE_MQ_ARCHETYPES

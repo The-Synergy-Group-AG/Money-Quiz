@@ -1,0 +1,90 @@
+# Directories
+.git
+.github
+node_modules
+tests
+docs
+cycle-*
+vendor/bin
+
+# Files
+.distignore
+.gitignore
+.gitattributes
+.editorconfig
+.phpcs.xml
+phpcs.xml
+phpstan.neon
+phpmd.xml
+phpunit.xml
+composer.json
+composer.lock
+package.json
+package-lock.json
+webpack.config.js
+gulpfile.js
+Gruntfile.js
+README.md
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+CHANGELOG.md
+.travis.yml
+.scrutinizer.yml
+bitbucket-pipelines.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+*.swp
+*.swo
+*~
+.idea
+.vscode
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Development files
+*.map
+*.scss
+*.sass
+*.less
+*.ts
+*.tsx
+*.jsx
+
+# Build files
+.cache
+.parcel-cache
+.sass-cache
+
+# Testing
+coverage/
+.nyc_output/
+*.test.js
+*.spec.js
+
+# Documentation
+*.md
+!readme.txt
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+*.7z
