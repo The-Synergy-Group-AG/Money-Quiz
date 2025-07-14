@@ -11,7 +11,7 @@ def prepare_review_package():
     """Prepare a complete package for Grok to review"""
     
     # Create review package directory
-    package_dir = Path("grok-review-package")
+    package_dir = Path("../ai-reviews")
     package_dir.mkdir(exist_ok=True)
     
     # Key files to include
@@ -28,7 +28,7 @@ def prepare_review_package():
     ]
     
     # Copy key files
-    code_dir = package_dir / "code-files"
+    code_dir = Path("sample-code")
     code_dir.mkdir(exist_ok=True)
     
     for file in key_files:
@@ -54,7 +54,7 @@ def prepare_review_package():
             print(f"✓ Copied {report}")
     
     # Create a code snippets file with problematic examples
-    with open(package_dir / "critical-code-examples.php", "w") as f:
+    with open("sample-code/critical-code-examples.php", "w") as f:
         f.write("""<?php
 // CRITICAL CODE EXAMPLES FROM MONEY QUIZ PLUGIN
 
@@ -126,9 +126,9 @@ $prospect_data = $_POST['prospect_data']; // This line never executes
 
 ## How to Review This Plugin:
 
-1. **Start with**: `review-request.md` - Contains Claude's findings and specific questions
-2. **Review code files**: Check the `code-files/` directory for the actual plugin code
-3. **Critical examples**: See `critical-code-examples.php` for the most problematic code snippets
+1. **Start with**: `../ai-reviews/review-request.md` - Contains Claude's findings and specific questions
+2. **Review code files**: Check the `../automation-tools/sample-code/` directory for the actual plugin code
+3. **Critical examples**: See `../automation-tools/sample-code/critical-code-examples.php` for the most problematic code snippets
 4. **Compare analyses**: Review Claude's reports to provide additional insights
 
 ## Priority Areas:
@@ -205,9 +205,9 @@ Please provide detailed, actionable recommendations with code examples where app
     print("✓ Grok review package prepared successfully!")
     print(f"✓ Package location: {package_dir.absolute()}")
     print("\nThe package contains:")
-    print("  - review-request.md (main review request with Claude's findings)")
-    print("  - code-files/ (key plugin files)")
-    print("  - critical-code-examples.php (most problematic code)")
+    print("  - ../ai-reviews/review-request.md (main review request with Claude's findings)")
+    print("  - ../automation-tools/sample-code/ (key plugin files)")
+    print("  - ../automation-tools/sample-code/critical-code-examples.php (most problematic code)")
     print("  - Claude's analysis reports")
     print("  - grok-instructions.md (review instructions)")
     print("  - plugin-statistics.md (codebase metrics)")

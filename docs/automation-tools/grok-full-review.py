@@ -30,7 +30,7 @@ def send_comprehensive_review():
     print("Sending comprehensive Money Quiz review to Grok...")
     
     # Read Claude's findings
-    claude_findings = read_file("grok-review-package/review-request.md")
+    claude_findings = read_file("../ai-reviews/review-request.md")
     if not claude_findings:
         claude_findings = """Claude found critical security vulnerabilities including SQL injection, 
         XSS, CSRF, hardcoded credentials, and architectural issues in the Money Quiz WordPress plugin."""

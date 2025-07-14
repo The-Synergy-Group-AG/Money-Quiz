@@ -30,13 +30,13 @@ def send_to_grok():
     print("="*60)
     
     # Read the main review request
-    review_request = read_file("grok-review-package/review-request.md")
+    review_request = read_file("../ai-reviews/review-request.md")
     
     # Read critical code examples
-    critical_code = read_file("grok-review-package/critical-code-examples.php")
+    critical_code = read_file("sample-code/critical-code-examples.php")
     
     # Read a sample of the main plugin file
-    main_plugin_sample = read_file("grok-review-package/code-files/moneyquiz.php")[:5000]
+    main_plugin_sample = read_file("sample-code/moneyquiz.php")[:5000]
     
     # Construct the comprehensive prompt
     prompt = f"""{review_request}
