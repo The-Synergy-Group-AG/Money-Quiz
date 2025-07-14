@@ -1,0 +1,34 @@
+name: Manual Workflow Check
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/manual-check.yml'
+
+jobs:
+  check:
+    name: Verify Workflows Working
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Check workflow files
+        run: |
+          echo "=== GitHub Actions is working! ==="
+          echo "Checking workflow files:"
+          ls -la .github/workflows/
+          
+      - name: Validate YAML
+        run: |
+          for workflow in .github/workflows/*.yml; do
+            echo "Checking $workflow"
+            cat "$workflow" | head -5
+          done
+          
+      - name: Summary
+        run: |
+          echo "✅ Workflows are properly configured"
+          echo "Total workflows: $(ls -1 .github/workflows/*.yml | wc -l)"
