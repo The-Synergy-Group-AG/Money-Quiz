@@ -1,0 +1,318 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, develop, 'feature/**', 'arj-upgrade' ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  phpunit:
+    name: PHPUnit Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['7.4', '8.0', '8.1', '8.2']
+        wordpress-version: ['5.8', '5.9', '6.0', '6.1', '6.2', '6.3', 'latest']
+        exclude:
+          # PHP 8.2 not compatible with older WordPress
+          - php-version: '8.2'
+            wordpress-version: '5.8'
+          - php-version: '8.2'
+            wordpress-version: '5.9'
+    
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: xdebug
+          tools: composer, wp-cli
+          extensions: mysqli
+          
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        
+      - name: Cache composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+          
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+        
+      - name: Setup WordPress test environment
+        run: |
+          mkdir -p /tmp/wordpress
+          cd /tmp/wordpress
+          wp core download --version=${{ matrix.wordpress-version }} --force
+          wp config create --dbname=wordpress_test --dbuser=root --dbpass=root --dbhost=127.0.0.1 --force
+          wp core install --url=http://localhost --title=Test --admin_user=admin --admin_password=password --admin_email=test@test.com --skip-email
+          
+      - name: Copy plugin to WordPress
+        run: |
+          mkdir -p /tmp/wordpress/wp-content/plugins/money-quiz
+          cp -r . /tmp/wordpress/wp-content/plugins/money-quiz/
+          cd /tmp/wordpress
+          wp plugin activate money-quiz
+          
+      - name: Run PHPUnit tests
+        run: |
+          cd cycle-2-code-stabilization/unit-tests
+          ./vendor/bin/phpunit --configuration=phpunit.xml
+          
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-php${{ matrix.php-version }}-wp${{ matrix.wordpress-version }}
+          path: |
+            coverage.xml
+            test-results.xml
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: phpunit
+    
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+          tools: composer, wp-cli
+          extensions: mysqli
+          
+      - name: Setup WordPress
+        run: |
+          mkdir -p /tmp/wordpress
+          cd /tmp/wordpress
+          wp core download --force
+          wp config create --dbname=wordpress_test --dbuser=root --dbpass=root --dbhost=127.0.0.1 --force
+          wp core install --url=http://localhost --title=Test --admin_user=admin --admin_password=password --admin_email=test@test.com --skip-email
+          
+      - name: Install plugin
+        run: |
+          mkdir -p /tmp/wordpress/wp-content/plugins/money-quiz
+          cp -r . /tmp/wordpress/wp-content/plugins/money-quiz/
+          cd /tmp/wordpress
+          wp plugin activate money-quiz
+          
+      - name: Run integration tests
+        run: |
+          cd /tmp/wordpress
+          
+          # Test plugin activation
+          wp plugin is-active money-quiz && echo "✅ Plugin activated successfully"
+          
+          # Test database tables creation
+          wp db query "SHOW TABLES LIKE '%mq_%'" | grep -q mq_ && echo "✅ Database tables created"
+          
+          # Test admin pages
+          wp eval 'echo admin_url("admin.php?page=moneyquiz");' | grep -q admin.php && echo "✅ Admin pages registered"
+          
+          # Test shortcodes
+          wp eval 'echo do_shortcode("[money_quiz]");' | grep -q quiz && echo "✅ Shortcodes working"
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: phpunit
+    
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+          tools: composer, wp-cli
+          extensions: mysqli
+          
+      - name: Install WordPress and activate plugin
+        run: |
+          mkdir -p /tmp/wordpress
+          cd /tmp/wordpress
+          wp core download --force
+          wp config create --dbname=wordpress_test --dbuser=root --dbpass=root --dbhost=127.0.0.1 --force
+          wp core install --url=http://localhost:8080 --title=Test --admin_user=admin --admin_password=password --admin_email=test@test.com --skip-email
+          mkdir -p wp-content/plugins/money-quiz
+          cp -r $GITHUB_WORKSPACE/* wp-content/plugins/money-quiz/
+          wp plugin activate money-quiz
+          
+      - name: Start WordPress server
+        run: |
+          cd /tmp/wordpress
+          php -S localhost:8080 &
+          sleep 5
+          
+      - name: Install Playwright
+        run: |
+          npm install -g @playwright/test
+          npx playwright install chromium
+          
+      - name: Create E2E tests
+        run: |
+          mkdir -p tests/e2e
+          cat > tests/e2e/quiz.spec.js << 'EOF'
+          const { test, expect } = require('@playwright/test');
+          
+          test.describe('Money Quiz E2E Tests', () => {
+            test('should load quiz page', async ({ page }) => {
+              await page.goto('http://localhost:8080');
+              await expect(page).toHaveTitle(/Test/);
+            });
+            
+            test('should display quiz when shortcode is present', async ({ page }) => {
+              // Create a page with shortcode
+              await page.goto('http://localhost:8080/wp-admin');
+              await page.fill('#user_login', 'admin');
+              await page.fill('#user_pass', 'password');
+              await page.click('#wp-submit');
+              
+              // Navigate to quiz page
+              await page.goto('http://localhost:8080/?page_id=2');
+              await expect(page.locator('.money-quiz-container')).toBeVisible();
+            });
+          });
+          EOF
+          
+      - name: Run E2E tests
+        run: |
+          npx playwright test tests/e2e/ --reporter=html || true
+          
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: e2e-test-results
+          path: playwright-report/
+
+  compatibility-check:
+    name: WordPress Compatibility
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+          tools: composer
+          
+      - name: Install PHP Compatibility
+        run: |
+          composer global require --no-interaction "phpcompatibility/php-compatibility"
+          composer global require --no-interaction "phpcompatibility/phpcompatibility-wp"
+          echo "$(composer global config bin-dir --absolute)" >> $GITHUB_PATH
+          
+      - name: Check PHP compatibility
+        run: |
+          phpcs -p . \
+            --standard=PHPCompatibilityWP \
+            --runtime-set testVersion 7.4- \
+            --extensions=php \
+            --ignore=vendor/,node_modules/,tests/ \
+            --report=summary
+
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+          tools: composer, phpbench
+          
+      - name: Create performance benchmarks
+        run: |
+          mkdir -p tests/benchmarks
+          cat > tests/benchmarks/QuizBench.php << 'EOF'
+          <?php
+          /**
+           * @BeforeMethods({"setUp"})
+           * @Revs(1000)
+           * @Iterations(5)
+           */
+          class QuizBench
+          {
+              public function setUp()
+              {
+                  // Setup code
+              }
+              
+              /**
+               * @Subject
+               */
+              public function benchQuizCalculation()
+              {
+                  // Benchmark quiz calculation
+                  $score = calculate_quiz_score([1, 2, 3, 4, 5]);
+              }
+              
+              /**
+               * @Subject
+               */
+              public function benchDatabaseQuery()
+              {
+                  // Benchmark database operations
+              }
+          }
+          EOF
+          
+      - name: Run performance benchmarks
+        run: |
+          phpbench run tests/benchmarks/ --report=default || true

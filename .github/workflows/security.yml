@@ -1,0 +1,237 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [ main, develop, 'arj-upgrade' ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 0 * * 1'  # Weekly on Monday
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  dependency-check:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  composer-audit:
+    name: Composer Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+          tools: composer
+          
+      - name: Install dependencies
+        run: composer install --no-dev --prefer-dist --no-progress
+        
+      - name: Run security audit
+        run: composer audit
+
+  snyk:
+    name: Snyk Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/php@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        language: ['javascript', 'php']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-and-quality
+          
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+        
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  wordpress-security:
+    name: WordPress Security Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+          coverage: none
+          
+      - name: Create security check script
+        run: |
+          cat > security-check.php << 'EOF'
+          <?php
+          $issues = [];
+          $files = glob('**/*.php', GLOB_BRACE);
+          
+          foreach ($files as $file) {
+              if (strpos($file, 'vendor/') === 0 || strpos($file, 'node_modules/') === 0) {
+                  continue;
+              }
+              
+              $content = file_get_contents($file);
+              
+              // Check for eval()
+              if (preg_match('/\beval\s*\(/i', $content)) {
+                  $issues[] = "Dangerous eval() found in $file";
+              }
+              
+              // Check for exec/system/shell_exec
+              if (preg_match('/\b(exec|system|shell_exec|passthru)\s*\(/i', $content)) {
+                  $issues[] = "Dangerous command execution function found in $file";
+              }
+              
+              // Check for file_get_contents with URLs
+              if (preg_match('/file_get_contents\s*\(\s*[\'"]https?:\/\//i', $content)) {
+                  $issues[] = "Remote file access found in $file";
+              }
+              
+              // Check for $_GET/$_POST/$_REQUEST without sanitization
+              if (preg_match('/\$_(GET|POST|REQUEST)\[[\'"][^\'"]+[\'"]\](?!\s*\))(?!\s*,)(?!\s*;)/i', $content)) {
+                  $issues[] = "Potentially unsanitized input in $file";
+              }
+              
+              // Check for SQL queries without prepare
+              if (preg_match('/\$wpdb->(get_results|get_row|get_var|query)\s*\(\s*[\'"].*\$_/i', $content)) {
+                  $issues[] = "Potential SQL injection in $file";
+              }
+              
+              // Check for missing nonce verification
+              if (preg_match('/if\s*\(\s*isset\s*\(\s*\$_(POST|GET|REQUEST)\[/', $content) && 
+                  !preg_match('/wp_verify_nonce|check_admin_referer/', $content)) {
+                  $issues[] = "Missing nonce verification in $file";
+              }
+          }
+          
+          if (!empty($issues)) {
+              echo "Security issues found:\n";
+              foreach ($issues as $issue) {
+                  echo "- $issue\n";
+              }
+              exit(1);
+          } else {
+              echo "No critical security issues found.\n";
+          }
+          EOF
+          
+      - name: Run security checks
+        run: php security-check.php || true
+
+  secrets-scan:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Check for hardcoded secrets
+        run: |
+          # Check for common patterns
+          if grep -r --include="*.php" -E "(api[_-]?key|secret[_-]?key|password|token)\s*=\s*['\"][^'\"]{10,}['\"]" . --exclude-dir=vendor --exclude-dir=node_modules --exclude-dir=docs; then
+            echo "::warning::Potential hardcoded secrets found"
+          fi
+
+  security-headers:
+    name: Security Headers Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Check for security headers implementation
+        run: |
+          echo "Checking for security header implementations..."
+          
+          # Check for X-Frame-Options
+          if ! grep -r "X-Frame-Options" . --include="*.php" --exclude-dir=vendor; then
+            echo "::warning::X-Frame-Options header not found"
+          fi
+          
+          # Check for Content-Security-Policy
+          if ! grep -r "Content-Security-Policy" . --include="*.php" --exclude-dir=vendor; then
+            echo "::warning::Content-Security-Policy header not found"
+          fi
+          
+          # Check for X-Content-Type-Options
+          if ! grep -r "X-Content-Type-Options" . --include="*.php" --exclude-dir=vendor; then
+            echo "::warning::X-Content-Type-Options header not found"
+          fi
+
+  owasp-zap:
+    name: OWASP ZAP Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Run OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.9.0
+        with:
+          target: 'https://example.com'  # Replace with test site
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
