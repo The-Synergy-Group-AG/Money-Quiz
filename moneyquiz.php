@@ -92,7 +92,32 @@ function mq_plugin_uninstall( ) {
 	
 // include functionality files 
 require_once( ABSPATH . 'wp-admin/includes/upgrade.php');
-require_once( MONEYQUIZ__PLUGIN_DIR . 'class.moneyquiz.php'); 
+require_once( MONEYQUIZ__PLUGIN_DIR . 'class.moneyquiz.php');
+
+// Load enhanced features integration
+if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-integration-loader.php' ) ) {
+    require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-integration-loader.php' );
+    require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-hooks-registry.php' );
+    require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-service-container.php' );
+    require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-db-updater.php' );
+    
+    // Initialize enhanced features after plugins loaded
+    add_action( 'plugins_loaded', function() {
+        // Load all feature files
+        Money_Quiz_Integration_Loader::load_features();
+        
+        // Register hooks and filters
+        Money_Quiz_Hooks_Registry::register();
+        
+        // Initialize service container
+        Money_Quiz_Service_Container::getInstance()->initialize();
+        
+        // Check and update database schema
+        if ( Money_Quiz_DB_Updater::needs_update() ) {
+            Money_Quiz_DB_Updater::update();
+        }
+    }, 5 );
+} 
 
 
 // add admin menu and sub menus
