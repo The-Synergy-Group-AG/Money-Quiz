@@ -1,0 +1,479 @@
+/**
+ * Money Quiz Notifications Styles
+ * 
+ * Styles for notification system including in-app notifications,
+ * admin bar integration, and notification management interface
+ */
+
+/* In-App Notification Container */
+#money-quiz-notifications-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 999999;
+    pointer-events: none;
+}
+
+.money-quiz-notification {
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    margin-bottom: 15px;
+    max-width: 400px;
+    opacity: 0;
+    pointer-events: all;
+    transform: translateX(400px);
+    transition: all 0.3s ease;
+}
+
+.money-quiz-notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.money-quiz-notification {
+    display: flex;
+    align-items: flex-start;
+    padding: 15px;
+    position: relative;
+}
+
+/* Notification Types */
+.money-quiz-notification.success {
+    border-left: 4px solid #46b450;
+}
+
+.money-quiz-notification.info {
+    border-left: 4px solid #00a0d2;
+}
+
+.money-quiz-notification.warning {
+    border-left: 4px solid #ffb900;
+}
+
+.money-quiz-notification.error {
+    border-left: 4px solid #dc3232;
+}
+
+/* Notification Icon */
+.notification-icon {
+    flex-shrink: 0;
+    margin-right: 12px;
+}
+
+.notification-icon .dashicons {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+}
+
+.money-quiz-notification.success .notification-icon {
+    color: #46b450;
+}
+
+.money-quiz-notification.info .notification-icon {
+    color: #00a0d2;
+}
+
+.money-quiz-notification.warning .notification-icon {
+    color: #ffb900;
+}
+
+.money-quiz-notification.error .notification-icon {
+    color: #dc3232;
+}
+
+/* Notification Content */
+.notification-content {
+    flex: 1;
+}
+
+.notification-content h4 {
+    margin: 0 0 5px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #23282d;
+}
+
+.notification-content p {
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: #555;
+    line-height: 1.5;
+}
+
+/* Notification Actions */
+.notification-actions {
+    margin-top: 10px;
+}
+
+.notification-actions .button {
+    margin-right: 5px;
+}
+
+/* Close Button */
+.notification-close {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 5px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.notification-close:hover {
+    opacity: 1;
+}
+
+.notification-close .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+/* Admin Bar Notifications */
+#wp-admin-bar-money-quiz-notifications {
+    position: relative;
+}
+
+#wp-admin-bar-money-quiz-notifications .ab-icon {
+    position: relative;
+}
+
+.money-quiz-notification-count {
+    background: #d54e21;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 17px;
+    min-width: 18px;
+    padding: 0 5px;
+    position: absolute;
+    right: -8px;
+    text-align: center;
+    top: -5px;
+}
+
+/* Notification Dropdown */
+#wp-admin-bar-money-quiz-notifications:hover .ab-sub-wrapper {
+    display: block;
+}
+
+.money-quiz-notification-item {
+    padding: 10px 20px !important;
+    min-width: 300px;
+}
+
+.money-quiz-notification-item strong {
+    display: block;
+    margin-bottom: 3px;
+    color: #0073aa;
+}
+
+/* Notification Prompt */
+.money-quiz-notification-prompt {
+    background: rgba(0, 0, 0, 0.8);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.money-quiz-notification-prompt .prompt-content {
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 3px 20px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    padding: 30px;
+    text-align: center;
+}
+
+.money-quiz-notification-prompt h4 {
+    margin: 0 0 15px;
+    font-size: 18px;
+}
+
+.money-quiz-notification-prompt p {
+    margin: 0 0 20px;
+    color: #666;
+}
+
+.prompt-actions .button {
+    margin: 0 5px;
+}
+
+/* Notifications Page */
+.money-quiz-notifications-page {
+    max-width: 1200px;
+}
+
+.notifications-header {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.notifications-filters {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.notifications-filters select,
+.notifications-filters input[type="search"] {
+    margin-right: 10px;
+}
+
+/* Notification List */
+.notifications-list {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.notification-item {
+    border-bottom: 1px solid #eee;
+    padding: 15px 20px;
+    position: relative;
+    transition: background-color 0.2s;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-item:hover {
+    background: #f7f7f7;
+}
+
+.notification-item.unread {
+    background: #f0f8ff;
+    border-left: 3px solid #0073aa;
+}
+
+.notification-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.notification-type-icon {
+    margin-right: 10px;
+}
+
+.notification-title {
+    flex: 1;
+    font-weight: 600;
+    font-size: 14px;
+    margin: 0;
+}
+
+.notification-time {
+    color: #666;
+    font-size: 12px;
+}
+
+.notification-message {
+    color: #555;
+    margin: 0 0 10px 34px;
+}
+
+.notification-item-actions {
+    margin-left: 34px;
+}
+
+.notification-item-actions .button {
+    font-size: 12px;
+    height: 26px;
+    line-height: 24px;
+    margin-right: 5px;
+    padding: 0 8px;
+}
+
+/* Empty State */
+.notifications-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.notifications-empty .dashicons {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #ddd;
+    margin-bottom: 20px;
+}
+
+/* Settings Panel */
+.notification-settings {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.notification-settings h3 {
+    margin-top: 0;
+}
+
+.notification-channel {
+    border-bottom: 1px solid #eee;
+    padding: 15px 0;
+}
+
+.notification-channel:last-child {
+    border-bottom: none;
+}
+
+.notification-channel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.notification-channel-title {
+    font-weight: 600;
+}
+
+.notification-channel-description {
+    color: #666;
+    font-size: 13px;
+    margin: 0;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .3s;
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: #0073aa;
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+}
+
+/* Responsive Design */
+@media screen and (max-width: 782px) {
+    #money-quiz-notifications-container {
+        top: 46px;
+        right: 10px;
+        left: 10px;
+    }
+    
+    .money-quiz-notification {
+        max-width: none;
+    }
+    
+    .money-quiz-notification-prompt .prompt-content {
+        margin: 20px;
+        max-width: none;
+    }
+    
+    .notifications-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .notifications-header h1 {
+        margin-bottom: 15px;
+    }
+}
+
+/* Loading State */
+.notifications-loading {
+    text-align: center;
+    padding: 40px;
+}
+
+.notifications-loading .spinner {
+    float: none;
+    margin: 0 auto 20px;
+}
+
+/* Animation for real-time updates */
+@keyframes notification-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 160, 210, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 160, 210, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 160, 210, 0);
+    }
+}
+
+.notification-item.new {
+    animation: notification-pulse 2s;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .money-quiz-notification {
+        background: #1e1e1e;
+        color: #fff;
+    }
+    
+    .notification-content h4 {
+        color: #fff;
+    }
+    
+    .notification-content p {
+        color: #ccc;
+    }
+    
+    .notification-close {
+        color: #ccc;
+    }
+}
