@@ -3084,7 +3084,7 @@ $body .= $bufferedContent;
 					
 					</div>
 					 
-					<input type="hidden" name="result_taken_id" id="result_taken_id" value="<?php echo $_GET['tid'];?>" />
+					<input type="hidden" name="result_taken_id" id="result_taken_id" value="<?php echo esc_attr(isset($_GET['tid']) ? intval($_GET['tid']) : ''); ?>" />
 					<input type="hidden" name="prospect_action" id="prospect_action" value="submit_new" />
 				 
 				</form>
@@ -3099,8 +3099,8 @@ $body .= $bufferedContent;
 	
 
 	global $wpdb;
-	$temp_conslut_id = $_GET['prospect'];
-	$results_test = $wpdb->get_row( "SELECT * FROM ".$table_prefix.TABLE_MQ_PROSPECTS." WHERE Prospect_ID = '".$temp_conslut_id."'", OBJECT );
+	$temp_conslut_id = isset($_GET['prospect']) ? intval($_GET['prospect']) : 0;
+	$results_test = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM ".$table_prefix.TABLE_MQ_PROSPECTS." WHERE Prospect_ID = %d", $temp_conslut_id ), OBJECT );
 	
 	if($results_test){
 		$prospect_id_test = $results_test->Prospect_ID;

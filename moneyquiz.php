@@ -6,7 +6,7 @@
 Plugin Name: Money Quiz
 Plugin URI: https://www.101businessinsights.com/
 Description: The Synergy Group AG - Advanced Money Quiz Plugin with Critical Failure Prevention System
-Version: 3.22.8
+Version: 3.22.9
 Author: The Synergy Group AG
 Author URI: https://www.101businessinsights.com/
 License: Premium 
@@ -30,7 +30,7 @@ if(strpos($mq_plugin_url, 'http') === false) {
 	$mq_plugin_url = (substr($site_url, -1) === '/') ? substr($site_url, 0, -1). $mq_plugin_url : $site_url. $mq_plugin_url;
 }
 
-define( 'MONEYQUIZ_VERSION', '3.22.8' );
+define( 'MONEYQUIZ_VERSION', '3.22.9' );
 define( 'MONEYQUIZ__MINIMUM_WP_VERSION', '2' );
 define( 'MONEYQUIZ__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MONEYQUIZ_DELETE_LIMIT', 100000 );
@@ -88,6 +88,18 @@ const EMAIL_SIGNATURE = "mq_email_signature";
 const QUIZ_RESULT = "mq_quiz_result";
 const RECAPTCHA = "mq_recaptcha_setting";
 const ARCHIVE_TYPE_TAG_LINE = "mq_quiz_archive_tag_line";
+// SECURITY PATCH: Include critical security fixes
+require_once plugin_dir_path( __FILE__ ) . 'security-patch-v3.22.9.php';
+
+// CODE QUALITY FIXES: Include code quality improvements
+require_once plugin_dir_path( __FILE__ ) . 'code-quality-fixes-v3.22.9.php';
+
+// TESTING & DEPENDENCY FIXES: Include testing and dependency management
+require_once plugin_dir_path( __FILE__ ) . 'testing-dependency-fixes-v3.22.9.php';
+
+// STABILITY FIXES: Include stability improvements
+require_once plugin_dir_path( __FILE__ ) . 'stability-fixes-v3.22.9.php';
+
 // wordpress active/deactive plugins hooks
 register_activation_hook( __FILE__, array( 'Moneyquiz', 'mq_plugin_activation' ) );
 register_deactivation_hook( __FILE__, array( 'Moneyquiz', 'mq_plugin_deactivation' ) );
