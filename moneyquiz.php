@@ -5,12 +5,16 @@
 /*
 Plugin Name: Money Quiz
 Plugin URI: https://www.101businessinsights.com/
-Description: The Synergy Group AG
-Version: 3.21
+Description: The Synergy Group AG - Advanced Money Quiz Plugin with Critical Failure Prevention System
+Version: 3.22
 Author: The Synergy Group AG
 Author URI: https://www.101businessinsights.com/
 License: Premium 
 Text Domain: moneyquiz
+Requires at least: 5.0
+Tested up to: 6.4
+Requires PHP: 7.4
+Network: false
 */
  
 // Make sure we don't expose any info if called directly
@@ -26,11 +30,17 @@ if(strpos($mq_plugin_url, 'http') === false) {
 	$mq_plugin_url = (substr($site_url, -1) === '/') ? substr($site_url, 0, -1). $mq_plugin_url : $site_url. $mq_plugin_url;
 }
 
-define( 'MONEYQUIZ_VERSION', '3.21' );
+define( 'MONEYQUIZ_VERSION', '3.22' );
 define( 'MONEYQUIZ__MINIMUM_WP_VERSION', '2' );
 define( 'MONEYQUIZ__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MONEYQUIZ_DELETE_LIMIT', 100000 );
 define( 'MONEYQUIZ_PLUGIN_URL', $mq_plugin_url);
+
+// PLUGIN IDENTIFICATION SYSTEM - v3.22
+// Ensure WordPress recognizes this as the same plugin across updates
+define( 'MONEYQUIZ_PLUGIN_SLUG', 'money-quiz' );
+define( 'MONEYQUIZ_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
+define( 'MONEYQUIZ_PLUGIN_FILE', __FILE__ );
 
 define( 'MONEYQUIZ_BUSINESS_INSIGHTS_EMAIL', 'andre@theSynergyGroup.ch' ); // live email
 
@@ -68,6 +78,37 @@ register_activation_hook( __FILE__, array( 'Moneyquiz', 'mq_plugin_activation' )
 register_deactivation_hook( __FILE__, array( 'Moneyquiz', 'mq_plugin_deactivation' ) );
 register_uninstall_hook(__FILE__, 'mq_plugin_uninstall');
 
+// PLUGIN UPDATE DETECTION SYSTEM - v3.22
+// Ensure WordPress recognizes this as an update, not a new installation
+add_action('plugins_loaded', 'mq_check_plugin_update');
+function mq_check_plugin_update() {
+    $current_version = get_option('mq_plugin_version', '0');
+    $new_version = MONEYQUIZ_VERSION;
+    
+    if (version_compare($current_version, $new_version, '<')) {
+        // This is an update
+        update_option('mq_plugin_version', $new_version);
+        update_option('mq_plugin_last_updated', current_time('mysql'));
+        
+        // Log the update for debugging
+        error_log("Money Quiz Plugin updated from v{$current_version} to v{$new_version}");
+        
+        // Trigger update-specific actions
+do_action('mq_plugin_updated', $current_version, $new_version);
+
+// Show update notification to admin
+if (is_admin() && current_user_can('manage_options')) {
+    add_action('admin_notices', function() use ($current_version, $new_version) {
+        if ($current_version !== '0') {
+            echo '<div class="notice notice-success is-dismissible">';
+            echo '<p><strong>Money Quiz Plugin Updated!</strong> Successfully updated from version ' . esc_html($current_version) . ' to version ' . esc_html($new_version) . '. The Critical Failure Prevention System is now active.</p>';
+            echo '</div>';
+        }
+    });
+}
+}
+}
+
 /**
  * Un-install plugin and delete Db tables 
  * and all data
@@ -98,6 +139,27 @@ require_once( MONEYQUIZ__PLUGIN_DIR . 'version-tracker.php');
 // Load Composer autoloader
 if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'vendor/autoload.php' ) ) {
     require_once( MONEYQUIZ__PLUGIN_DIR . 'vendor/autoload.php' );
+}
+
+// CRITICAL FAILURE PREVENTION SYSTEM - v3.22
+// Ensure dependency checker is loaded first
+if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-dependency-checker.php' ) ) {
+    require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-dependency-checker.php' );
+    
+    // Initialize dependency checker immediately
+    if ( class_exists( 'Money_Quiz_Dependency_Checker' ) ) {
+        $dependency_checker = new Money_Quiz_Dependency_Checker();
+        $dependency_checker->init();
+        
+        // Verify critical failure prevention system is active
+        if (method_exists($dependency_checker, 'is_system_active')) {
+            if ($dependency_checker->is_system_active()) {
+                error_log("Money Quiz v3.22: Critical Failure Prevention System ACTIVE");
+            } else {
+                error_log("Money Quiz v3.22: Critical Failure Prevention System INACTIVE - Manual intervention required");
+            }
+        }
+    }
 }
 
 // Load enhanced features integration

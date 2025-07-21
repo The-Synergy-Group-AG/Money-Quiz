@@ -300,4 +300,41 @@ class Money_Quiz_Dependency_Checker {
             'post_max_size' => ini_get('post_max_size')
         ];
     }
+    
+    /**
+     * Check if the critical failure prevention system is active
+     * 
+     * @return bool
+     */
+    public static function is_system_active() {
+        $issues = self::get_dependency_issues();
+        
+        // Filter out only critical issues
+        $critical_issues = array_filter($issues, function($issue) {
+            return $issue['type'] === 'critical';
+        });
+        
+        // System is active if no critical issues exist
+        return empty($critical_issues);
+    }
+    
+    /**
+     * Get system status for admin display
+     */
+    public static function get_system_status() {
+        $is_active = self::is_system_active();
+        $issues = self::get_dependency_issues();
+        
+        return [
+            'active' => $is_active,
+            'status' => $is_active ? 'ACTIVE' : 'INACTIVE',
+            'critical_issues' => count(array_filter($issues, function($issue) {
+                return $issue['type'] === 'critical';
+            })),
+            'warning_issues' => count(array_filter($issues, function($issue) {
+                return $issue['type'] === 'warning';
+            })),
+            'total_issues' => count($issues)
+        ];
+    }
 } 
