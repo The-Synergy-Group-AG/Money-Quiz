@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop, 'arj-upgrade' ]
+    branches: [ main, develop, 'arj-upgrade', 'v3.21-critical-fixes' ]
   pull_request:
     branches: [ main, develop ]
     types: [ opened, synchronize, reopened, ready_for_review ]

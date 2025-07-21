@@ -2,7 +2,7 @@ name: Security Scanning
 
 on:
   push:
-    branches: [ main, develop, 'arj-upgrade' ]
+    branches: [ main, develop, 'arj-upgrade', 'v3.21-critical-fixes' ]
   pull_request:
     branches: [ main, develop ]
   schedule:
