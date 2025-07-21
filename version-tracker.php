@@ -169,14 +169,14 @@ class MoneyQuizVersionTracker {
     }
 }
 
-// Initialize version tracking on plugin activation
-register_activation_hook(__FILE__, function() {
-    MoneyQuizVersionTracker::update_version('3.6', [
-        'Initial version tracking implementation',
-        'Updated menu structure with logical grouping',
-        'Added comprehensive ReadMe documentation',
-        'Updated company branding to The Synergy Group AG',
-        'Moved Credits menu to end of navigation',
-        'Updated integration links to new Google Forms URL'
-    ]);
-}); 
+// Initialize version tracking on plugin activation (DISABLED for bulletproof version)
+// register_activation_hook(__FILE__, function() {
+//     MoneyQuizVersionTracker::update_version('3.6', [
+//         'Initial version tracking implementation',
+//         'Updated menu structure with logical grouping',
+//         'Added comprehensive ReadMe documentation',
+//         'Updated company branding to The Synergy Group AG',
+//         'Moved Credits menu to end of navigation',
+//         'Updated integration links to new Google Forms URL'
+//     ]);
+// }); 

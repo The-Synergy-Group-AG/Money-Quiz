@@ -6,7 +6,7 @@
 Plugin Name: Money Quiz
 Plugin URI: https://www.101businessinsights.com/
 Description: The Synergy Group AG - Advanced Money Quiz Plugin with Critical Failure Prevention System
-Version: 3.22.3
+Version: 3.22.4
 Author: The Synergy Group AG
 Author URI: https://www.101businessinsights.com/
 License: Premium 
@@ -30,7 +30,7 @@ if(strpos($mq_plugin_url, 'http') === false) {
 	$mq_plugin_url = (substr($site_url, -1) === '/') ? substr($site_url, 0, -1). $mq_plugin_url : $site_url. $mq_plugin_url;
 }
 
-define( 'MONEYQUIZ_VERSION', '3.22.3' );
+define( 'MONEYQUIZ_VERSION', '3.22.4' );
 define( 'MONEYQUIZ__MINIMUM_WP_VERSION', '2' );
 define( 'MONEYQUIZ__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MONEYQUIZ_DELETE_LIMIT', 100000 );
@@ -141,16 +141,16 @@ if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'vendor/autoload.php' ) ) {
     require_once( MONEYQUIZ__PLUGIN_DIR . 'vendor/autoload.php' );
 }
 
-// CRITICAL FAILURE PREVENTION SYSTEM - v3.22.3
+// CRITICAL FAILURE PREVENTION SYSTEM - v3.22.4
 // Load only essential components to prevent errors
 if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-dependency-checker.php' ) ) {
     require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-dependency-checker.php' );
 }
 
-// Load enhanced features integration (simplified to prevent errors)
-if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-integration-loader.php' ) ) {
-    require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-integration-loader.php' );
-}
+// Load enhanced features integration (DISABLED for bulletproof version)
+// if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-integration-loader.php' ) ) {
+//     require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-integration-loader.php' );
+// }
     
     // Initialize essential components after plugins loaded
 add_action( 'plugins_loaded', function() {
@@ -160,10 +160,10 @@ add_action( 'plugins_loaded', function() {
             Money_Quiz_Dependency_Checker::init();
         }
         
-        // Load enhanced features if available (optional)
-        if ( class_exists( 'Money_Quiz_Integration_Loader' ) ) {
-            Money_Quiz_Integration_Loader::load_features();
-        }
+        // Load enhanced features if available (DISABLED for bulletproof version)
+        // if ( class_exists( 'Money_Quiz_Integration_Loader' ) ) {
+        //     Money_Quiz_Integration_Loader::load_features();
+        // }
     } catch (Exception $e) {
         // Log error but don't crash the plugin
         error_log('MoneyQuiz Initialization Error: ' . $e->getMessage());
