@@ -61,6 +61,10 @@ yarn-error.log*
 *.tsx
 *.jsx
 
+# Version tracking files (keep in development, exclude from distribution)
+version-info.json
+CHANGELOG.md
+
 # Build files
 .cache
 .parcel-cache
