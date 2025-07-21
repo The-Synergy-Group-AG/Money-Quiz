@@ -2,7 +2,7 @@ name: Code Quality
 
 on:
   push:
-    branches: [ main, develop, 'feature/**', 'arj-upgrade' ]
+    branches: [ main, develop, 'feature/**', 'arj-upgrade', 'v3.21-critical-fixes' ]
   pull_request:
     branches: [ main, develop ]
   workflow_dispatch:
