@@ -6,7 +6,7 @@
 Plugin Name: Money Quiz
 Plugin URI: https://www.101businessinsights.com/
 Description: The Synergy Group AG - Advanced Money Quiz Plugin with Critical Failure Prevention System
-Version: 3.22.7
+Version: 3.22.8
 Author: The Synergy Group AG
 Author URI: https://www.101businessinsights.com/
 License: Premium 
@@ -30,7 +30,7 @@ if(strpos($mq_plugin_url, 'http') === false) {
 	$mq_plugin_url = (substr($site_url, -1) === '/') ? substr($site_url, 0, -1). $mq_plugin_url : $site_url. $mq_plugin_url;
 }
 
-define( 'MONEYQUIZ_VERSION', '3.22.7' );
+define( 'MONEYQUIZ_VERSION', '3.22.8' );
 define( 'MONEYQUIZ__MINIMUM_WP_VERSION', '2' );
 define( 'MONEYQUIZ__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MONEYQUIZ_DELETE_LIMIT', 100000 );
@@ -166,6 +166,23 @@ if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-dependency-
 if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-integration-loader.php' ) ) {
     require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-integration-loader.php' );
 }
+
+// Load enhanced security components (ENHANCED SECURITY - Grok recommendations)
+if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-rate-limiter.php' ) ) {
+    require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-rate-limiter.php' );
+}
+if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-input-validator.php' ) ) {
+    require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-input-validator.php' );
+}
+if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-error-handler.php' ) ) {
+    require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-error-handler.php' );
+}
+if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-security-headers.php' ) ) {
+    require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-security-headers.php' );
+}
+if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-database-security.php' ) ) {
+    require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-database-security.php' );
+}
     
     // Initialize essential components after plugins loaded
 add_action( 'plugins_loaded', function() {
@@ -175,10 +192,18 @@ add_action( 'plugins_loaded', function() {
             Money_Quiz_Dependency_Checker::init();
         }
         
-        // Load enhanced features if available (STRATEGIC FIX - WordPress readiness check)
-        if ( class_exists( 'Money_Quiz_Integration_Loader' ) ) {
-            Money_Quiz_Integration_Loader::load_features();
-        }
+            // Load enhanced features if available (STRATEGIC FIX - WordPress readiness check)
+    if ( class_exists( 'Money_Quiz_Integration_Loader' ) ) {
+        Money_Quiz_Integration_Loader::load_features();
+    }
+    
+    // Initialize enhanced security components (ENHANCED SECURITY - Grok recommendations)
+    if ( class_exists( 'Money_Quiz_Error_Handler' ) ) {
+        Money_Quiz_Error_Handler::init();
+    }
+    if ( class_exists( 'Money_Quiz_Security_Headers' ) ) {
+        Money_Quiz_Security_Headers::init();
+    }
     } catch (Exception $e) {
         // Log error but don't crash the plugin
         error_log('MoneyQuiz Initialization Error: ' . $e->getMessage());
