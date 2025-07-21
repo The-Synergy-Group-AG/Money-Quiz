@@ -6,7 +6,7 @@
 Plugin Name: Money Quiz
 Plugin URI: https://www.101businessinsights.com/
 Description: The Synergy Group AG - Advanced Money Quiz Plugin with Critical Failure Prevention System
-Version: 3.22
+Version: 3.22.1
 Author: The Synergy Group AG
 Author URI: https://www.101businessinsights.com/
 License: Premium 
@@ -30,7 +30,7 @@ if(strpos($mq_plugin_url, 'http') === false) {
 	$mq_plugin_url = (substr($site_url, -1) === '/') ? substr($site_url, 0, -1). $mq_plugin_url : $site_url. $mq_plugin_url;
 }
 
-define( 'MONEYQUIZ_VERSION', '3.22' );
+define( 'MONEYQUIZ_VERSION', '3.22.1' );
 define( 'MONEYQUIZ__MINIMUM_WP_VERSION', '2' );
 define( 'MONEYQUIZ__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MONEYQUIZ_DELETE_LIMIT', 100000 );
@@ -141,25 +141,10 @@ if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'vendor/autoload.php' ) ) {
     require_once( MONEYQUIZ__PLUGIN_DIR . 'vendor/autoload.php' );
 }
 
-// CRITICAL FAILURE PREVENTION SYSTEM - v3.22
-// Ensure dependency checker is loaded first
+// CRITICAL FAILURE PREVENTION SYSTEM - v3.22.1
+// Load dependency checker safely
 if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-dependency-checker.php' ) ) {
     require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-dependency-checker.php' );
-    
-    // Initialize dependency checker immediately
-    if ( class_exists( 'Money_Quiz_Dependency_Checker' ) ) {
-        $dependency_checker = new Money_Quiz_Dependency_Checker();
-        $dependency_checker->init();
-        
-        // Verify critical failure prevention system is active
-        if (method_exists($dependency_checker, 'is_system_active')) {
-            if ($dependency_checker->is_system_active()) {
-                error_log("Money Quiz v3.22: Critical Failure Prevention System ACTIVE");
-            } else {
-                error_log("Money Quiz v3.22: Critical Failure Prevention System INACTIVE - Manual intervention required");
-            }
-        }
-    }
 }
 
 // Load enhanced features integration
@@ -168,34 +153,35 @@ if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-integration
     require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-hooks-registry.php' );
     require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-service-container.php' );
     require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-db-updater.php' );
-    require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-dependency-checker.php' );
     
-    // Initialize dependency checker early
-    add_action( 'admin_init', function() {
-        Money_Quiz_Dependency_Checker::init();
-    }, 1 );
+    // Dependency checker already loaded above, don't load again
     
     // Initialize enhanced features after plugins loaded
-    add_action( 'plugins_loaded', function() {
-        try {
-            // Load all feature files
-            Money_Quiz_Integration_Loader::load_features();
-            
-            // Register hooks and filters
-            Money_Quiz_Hooks_Registry::register();
-            
-            // Initialize service container
-            Money_Quiz_Service_Container::getInstance()->initialize();
-            
-            // Check and update database schema
-            if ( Money_Quiz_DB_Updater::needs_update() ) {
-                Money_Quiz_DB_Updater::update();
-            }
-        } catch (Exception $e) {
-            // Log error but don't crash the plugin
-            error_log('MoneyQuiz Enhanced Features Error: ' . $e->getMessage());
+add_action( 'plugins_loaded', function() {
+    try {
+        // Initialize dependency checker first
+        if ( class_exists( 'Money_Quiz_Dependency_Checker' ) ) {
+            Money_Quiz_Dependency_Checker::init();
         }
-    }, 5 );
+        
+        // Load all feature files
+        Money_Quiz_Integration_Loader::load_features();
+        
+        // Register hooks and filters
+        Money_Quiz_Hooks_Registry::register();
+        
+        // Initialize service container
+        Money_Quiz_Service_Container::getInstance()->initialize();
+        
+        // Check and update database schema
+        if ( Money_Quiz_DB_Updater::needs_update() ) {
+            Money_Quiz_DB_Updater::update();
+        }
+    } catch (Exception $e) {
+        // Log error but don't crash the plugin
+        error_log('MoneyQuiz Enhanced Features Error: ' . $e->getMessage());
+    }
+}, 5 );
 } 
 
 
