@@ -1,0 +1,57 @@
+# Vendor directory (composer dependencies)
+/vendor/
+
+# Node modules
+/node_modules/
+
+# Build files
+/build/
+/dist/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# WordPress
+wp-config.php
+.htaccess
+
+# Logs
+*.log
+error_log
+
+# Cache
+/cache/
+*.cache
+
+# Environment files
+.env
+.env.local
+
+# Test coverage
+/coverage/
+/metrics-report/
+
+# Temporary files
+*.tmp
+*.temp
+~*
+
+# Backup files
+*.bak
+*.backup
+
+# Compiled files
+*.min.js
+*.min.css
+
+# Package files
+*.zip
+*.tar.gz

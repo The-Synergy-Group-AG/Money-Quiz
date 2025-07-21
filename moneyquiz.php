@@ -1,13 +1,13 @@
 <?php
 /**
- * @package Business Insights Group AG
+ * @package The Synergy Group AG
  */
 /*
 Plugin Name: Money Quiz
 Plugin URI: https://www.101businessinsights.com/
-Description: Business Insights Group AG
-Version: 3.3
-Author: Business Insights Group AG
+Description: The Synergy Group AG
+Version: 3.21
+Author: The Synergy Group AG
 Author URI: https://www.101businessinsights.com/
 License: Premium 
 Text Domain: moneyquiz
@@ -26,13 +26,13 @@ if(strpos($mq_plugin_url, 'http') === false) {
 	$mq_plugin_url = (substr($site_url, -1) === '/') ? substr($site_url, 0, -1). $mq_plugin_url : $site_url. $mq_plugin_url;
 }
 
-define( 'MONEYQUIZ_VERSION', '2' );
+define( 'MONEYQUIZ_VERSION', '3.21' );
 define( 'MONEYQUIZ__MINIMUM_WP_VERSION', '2' );
 define( 'MONEYQUIZ__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MONEYQUIZ_DELETE_LIMIT', 100000 );
 define( 'MONEYQUIZ_PLUGIN_URL', $mq_plugin_url);
 
-define( 'MONEYQUIZ_BUSINESS_INSIGHTS_EMAIL', 'andre@101businessinsights.info' ); // live email
+define( 'MONEYQUIZ_BUSINESS_INSIGHTS_EMAIL', 'andre@theSynergyGroup.ch' ); // live email
 
 // This is the secret key for API authentication. You configured it in the settings menu of the license manager plugin.
 define('MONEYQUIZ_SPECIAL_SECRET_KEY', '5bcd52f5276855.46942741'); // live server
@@ -92,29 +92,107 @@ function mq_plugin_uninstall( ) {
 	
 // include functionality files 
 require_once( ABSPATH . 'wp-admin/includes/upgrade.php');
-require_once( MONEYQUIZ__PLUGIN_DIR . 'class.moneyquiz.php'); 
+require_once( MONEYQUIZ__PLUGIN_DIR . 'class.moneyquiz.php');
+require_once( MONEYQUIZ__PLUGIN_DIR . 'version-tracker.php');
+
+// Load Composer autoloader
+if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'vendor/autoload.php' ) ) {
+    require_once( MONEYQUIZ__PLUGIN_DIR . 'vendor/autoload.php' );
+}
+
+// Load enhanced features integration
+if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-integration-loader.php' ) ) {
+    require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-integration-loader.php' );
+    require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-hooks-registry.php' );
+    require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-service-container.php' );
+    require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-db-updater.php' );
+    require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-dependency-checker.php' );
+    
+    // Initialize dependency checker early
+    add_action( 'admin_init', function() {
+        Money_Quiz_Dependency_Checker::init();
+    }, 1 );
+    
+    // Initialize enhanced features after plugins loaded
+    add_action( 'plugins_loaded', function() {
+        try {
+            // Load all feature files
+            Money_Quiz_Integration_Loader::load_features();
+            
+            // Register hooks and filters
+            Money_Quiz_Hooks_Registry::register();
+            
+            // Initialize service container
+            Money_Quiz_Service_Container::getInstance()->initialize();
+            
+            // Check and update database schema
+            if ( Money_Quiz_DB_Updater::needs_update() ) {
+                Money_Quiz_DB_Updater::update();
+            }
+        } catch (Exception $e) {
+            // Log error but don't crash the plugin
+            error_log('MoneyQuiz Enhanced Features Error: ' . $e->getMessage());
+        }
+    }, 5 );
+} 
 
 
 // add admin menu and sub menus
 add_action('admin_menu', 'moneyquiz_plugin_setting_menu');
 function moneyquiz_plugin_setting_menu(){
+		// Main Money Quiz menu
 		add_menu_page( 'Money Quiz', 'Money Quiz', 'manage_options', 'mq_welcome', 'moneyquiz_plugin_setting_page', plugins_url('assets/images/menuicon.jpeg',__FILE__) );
-		add_submenu_page( 'mq_welcome', 'MoneyCoach', 'MoneyCoach', 'manage_options', 'mq_moneycoach', 'moneyquiz_plugin_setting_page' );
-		add_submenu_page( 'mq_welcome', 'Request', 'Request', 'manage_options', 'mq_prospects', 'moneyquiz_plugin_setting_page' );
-		add_submenu_page( 'mq_welcome', 'Layout', 'Layout', 'manage_options', 'mq_quiz', 'moneyquiz_plugin_setting_page' );
-		add_submenu_page( 'mq_welcome', 'Questions', 'Questions', 'manage_options', 'mq_questions', 'moneyquiz_plugin_setting_page' );
-		add_submenu_page( 'mq_welcome', 'CTA', 'CTA', 'manage_options', 'mq_cta', 'moneyquiz_plugin_setting_page' );
-		add_submenu_page( 'mq_welcome', 'Archetypes', 'Archetypes', 'manage_options', 'mq_archetypes', 'moneyquiz_plugin_setting_page' );
-		add_submenu_page( 'mq_welcome', 'Reports', 'Reports', 'manage_options', 'mq_reports', 'moneyquiz_plugin_setting_page' );
-		add_submenu_page( 'mq_welcome', 'Stats', 'Stats', 'manage_options', 'mq_stats', 'moneyquiz_plugin_setting_page' );
-		add_submenu_page( 'mq_welcome', 'Integration', 'Integration', 'manage_options', 'mq_integration', 'moneyquiz_plugin_setting_page' );
-		add_submenu_page( 'mq_welcome', 'Pop-up', 'Pop-up', 'manage_options', 'mq_popup', 'moneyquiz_plugin_setting_page' );
-		add_submenu_page( 'mq_welcome', 'Credit', 'Credit', 'manage_options', 'mq_credit', 'moneyquiz_plugin_setting_page' );
-		add_submenu_page( 'mq_welcome', 'Start', 'Start', 'manage_options', 'mq_money_quiz_layout', 'moneyquiz_plugin_setting_page' );
-		add_submenu_page( 'mq_welcome', 'Sections', 'Sections', 'manage_options', 'page_question_screen', 'moneyquiz_plugin_setting_page' );
-		add_submenu_page( 'mq_welcome', 'Email', 'Email', 'manage_options', 'email_setting', 'moneyquiz_plugin_setting_page' );
-		add_submenu_page( 'mq_welcome', 'Display', 'Display', 'manage_options', 'quiz_result', 'moneyquiz_plugin_setting_page' );
-		add_submenu_page( 'mq_welcome', 'Recaptcha', 'Recaptcha', 'manage_options', 'recaptcha', 'moneyquiz_plugin_setting_page' );
+		
+		// Welcome page (main menu item)
+		add_submenu_page( 'mq_welcome', 'Welcome', 'Welcome', 'manage_options', 'mq_welcome', 'moneyquiz_plugin_setting_page' );
+		
+		// 🎯 Quiz Setup & Configuration
+		add_submenu_page( 'mq_welcome', 'Quiz Setup & Configuration', '🎯 Quiz Setup & Configuration', 'manage_options', 'mq_quiz_setup', 'moneyquiz_plugin_setting_page' );
+		
+		// Quiz Setup sub-items (direct under main menu)
+		add_submenu_page( 'mq_welcome', 'Quiz Layout', '— Quiz Layout', 'manage_options', 'mq_quiz', 'moneyquiz_plugin_setting_page' );
+		add_submenu_page( 'mq_welcome', 'Questions', '— Questions', 'manage_options', 'mq_questions', 'moneyquiz_plugin_setting_page' );
+		add_submenu_page( 'mq_welcome', 'Archetypes', '— Archetypes', 'manage_options', 'mq_archetypes', 'moneyquiz_plugin_setting_page' );
+		add_submenu_page( 'mq_welcome', 'CTA Settings', '— CTA Settings', 'manage_options', 'mq_cta', 'moneyquiz_plugin_setting_page' );
+		
+		// 🎯 Quiz Experience
+		add_submenu_page( 'mq_welcome', 'Quiz Experience', '🎯 Quiz Experience', 'manage_options', 'mq_quiz_experience', 'moneyquiz_plugin_setting_page' );
+		
+		// Quiz Experience sub-items
+		add_submenu_page( 'mq_welcome', 'Start Screen', '— Start Screen', 'manage_options', 'mq_money_quiz_layout', 'moneyquiz_plugin_setting_page' );
+		add_submenu_page( 'mq_welcome', 'Question Sections', '— Question Sections', 'manage_options', 'page_question_screen', 'moneyquiz_plugin_setting_page' );
+		add_submenu_page( 'mq_welcome', 'Display Settings', '— Display Settings', 'manage_options', 'quiz_result', 'moneyquiz_plugin_setting_page' );
+		
+		// 📧 Communication & Marketing
+		add_submenu_page( 'mq_welcome', 'Communication & Marketing', '📧 Communication & Marketing', 'manage_options', 'mq_communication', 'moneyquiz_plugin_setting_page' );
+		
+		// Communication sub-items
+		add_submenu_page( 'mq_welcome', 'Email Settings', '— Email Settings', 'manage_options', 'email_setting', 'moneyquiz_plugin_setting_page' );
+		add_submenu_page( 'mq_welcome', 'Pop-up Settings', '— Pop-up Settings', 'manage_options', 'mq_popup', 'moneyquiz_plugin_setting_page' );
+		add_submenu_page( 'mq_welcome', 'Integration', '— Integration', 'manage_options', 'mq_integration', 'moneyquiz_plugin_setting_page' );
+		
+		// 📊 Data & Analytics
+		add_submenu_page( 'mq_welcome', 'Data & Analytics', '📊 Data & Analytics', 'manage_options', 'mq_analytics', 'moneyquiz_plugin_setting_page' );
+		
+		// Analytics sub-items
+		add_submenu_page( 'mq_welcome', 'Prospects', '— Prospects', 'manage_options', 'mq_prospects', 'moneyquiz_plugin_setting_page' );
+		add_submenu_page( 'mq_welcome', 'Reports', '— Reports', 'manage_options', 'mq_reports', 'moneyquiz_plugin_setting_page' );
+		add_submenu_page( 'mq_welcome', 'Statistics', '— Statistics', 'manage_options', 'mq_stats', 'moneyquiz_plugin_setting_page' );
+		
+		// 🔧 Additional Features
+		add_submenu_page( 'mq_welcome', 'Additional Features', '🔧 Additional Features', 'manage_options', 'mq_features', 'moneyquiz_plugin_setting_page' );
+		
+		// Features sub-items
+		add_submenu_page( 'mq_welcome', 'MoneyCoach', '— MoneyCoach', 'manage_options', 'mq_moneycoach', 'moneyquiz_plugin_setting_page' );
+		add_submenu_page( 'mq_welcome', 'Recaptcha', '— Recaptcha', 'manage_options', 'recaptcha', 'moneyquiz_plugin_setting_page' );
+		add_submenu_page( 'mq_welcome', 'ReadMe', '— ReadMe', 'manage_options', 'mq_readme', 'moneyquiz_plugin_setting_page' );
+		add_submenu_page( 'mq_welcome', 'Change Log', '— Change Log', 'manage_options', 'mq_changelog', 'moneyquiz_plugin_setting_page' );
+		add_submenu_page( 'mq_welcome', 'Credits', '— Credits', 'manage_options', 'mq_credit', 'moneyquiz_plugin_setting_page' );
+		
+		// 🤖 AI & Advanced Features
+		add_submenu_page( 'mq_welcome', 'AI Dashboard', '🤖 AI Dashboard', 'manage_options', 'mq_ai_dashboard', 'moneyquiz_plugin_setting_page' );
+		add_submenu_page( 'mq_welcome', 'Performance Dashboard', '⚡ Performance Dashboard', 'manage_options', 'mq_performance_dashboard', 'moneyquiz_plugin_setting_page' );
+		add_submenu_page( 'mq_welcome', 'Security Dashboard', '🛡️ Security Dashboard', 'manage_options', 'mq_security_dashboard', 'moneyquiz_plugin_setting_page' );
 }
 	
 /*
@@ -1276,7 +1354,7 @@ This is your chance to gain deeper insights into your financial mindset and star
 	}
 	
 	
-	$current_tab_archetypes = $current_tab_credits = $current_tab_popup = $current_tab_integration = $current_tab_stats = $current_tab_reports = $current_tab_welcome = $current_tab_moneycoach = $current_tab_prospects = $current_tab_questions = $current_tab_quiz = $current_tab_cta = "";
+	$current_tab_archetypes = $current_tab_credits = $current_tab_popup = $current_tab_integration = $current_tab_stats = $current_tab_reports = $current_tab_welcome = $current_tab_moneycoach = $current_tab_prospects = $current_tab_questions = $current_tab_quiz = $current_tab_cta = $current_tab_readme = $current_tab_changelog = $current_tab_quiz_setup = $current_tab_quiz_experience = $current_tab_communication = $current_tab_analytics = $current_tab_features = "";
 	if(isset($_REQUEST['page']) && $_REQUEST['page'] == "mq_prospects" && $plugin_activated == 1){
 		$current_tab_prospects ="Active";
 		require_once( MONEYQUIZ__PLUGIN_DIR . 'prospects.admin.php'); 
@@ -1433,6 +1511,84 @@ This is your chance to gain deeper insights into your financial mindset and star
 		}
 		$current_tab_stats="Active";
 		require_once( MONEYQUIZ__PLUGIN_DIR . 'stats.admin.php'); 
+	}elseif(isset($_REQUEST['page']) && $_REQUEST['page'] == "mq_readme"  && $plugin_activated == 1){
+		$current_tab_readme="Active";
+		require_once( MONEYQUIZ__PLUGIN_DIR . 'readme.admin.php'); 
+	}elseif(isset($_REQUEST['page']) && $_REQUEST['page'] == "mq_changelog"  && $plugin_activated == 1){
+		$current_tab_changelog="Active";
+		require_once( MONEYQUIZ__PLUGIN_DIR . 'changelog.admin.php'); 
+	}elseif(isset($_REQUEST['page']) && $_REQUEST['page'] == "mq_quiz_setup"  && $plugin_activated == 1){
+		$current_tab_quiz_setup="Active";
+		require_once( MONEYQUIZ__PLUGIN_DIR . 'quiz-setup.admin.php'); 
+	}elseif(isset($_REQUEST['page']) && $_REQUEST['page'] == "mq_quiz_experience"  && $plugin_activated == 1){
+		$current_tab_quiz_experience="Active";
+		require_once( MONEYQUIZ__PLUGIN_DIR . 'quiz-experience.admin.php'); 
+	}elseif(isset($_REQUEST['page']) && $_REQUEST['page'] == "mq_communication"  && $plugin_activated == 1){
+		$current_tab_communication="Active";
+		require_once( MONEYQUIZ__PLUGIN_DIR . 'communication.admin.php'); 
+	}elseif(isset($_REQUEST['page']) && $_REQUEST['page'] == "mq_analytics"  && $plugin_activated == 1){
+		$current_tab_analytics="Active";
+		require_once( MONEYQUIZ__PLUGIN_DIR . 'analytics.admin.php'); 
+	}elseif(isset($_REQUEST['page']) && $_REQUEST['page'] == "mq_features"  && $plugin_activated == 1){
+		$current_tab_features="Active";
+		require_once( MONEYQUIZ__PLUGIN_DIR . 'features.admin.php'); 
+	}elseif(isset($_REQUEST['page']) && $_REQUEST['page'] == "mq_ai_dashboard"  && $plugin_activated == 1){
+		$current_tab_ai_dashboard="Active";
+		// AI Dashboard content
+		echo '<div class="wrap">';
+		echo '<h1>🤖 AI Dashboard</h1>';
+		echo '<div class="notice notice-info">';
+		echo '<p><strong>AI Features Status:</strong> Enhanced AI features are being loaded...</p>';
+		echo '<p>This dashboard provides access to AI-powered analytics, pattern recognition, and intelligent recommendations.</p>';
+		echo '</div>';
+		echo '<div class="card">';
+		echo '<h2>AI Capabilities</h2>';
+		echo '<ul>';
+		echo '<li>📊 Intelligent Analytics</li>';
+		echo '<li>🎯 Pattern Recognition</li>';
+		echo '<li>💡 Smart Recommendations</li>';
+		echo '<li>🔮 Predictive Insights</li>';
+		echo '</ul>';
+		echo '</div>';
+		echo '</div>';
+	}elseif(isset($_REQUEST['page']) && $_REQUEST['page'] == "mq_performance_dashboard"  && $plugin_activated == 1){
+		$current_tab_performance_dashboard="Active";
+		// Performance Dashboard content
+		echo '<div class="wrap">';
+		echo '<h1>⚡ Performance Dashboard</h1>';
+		echo '<div class="notice notice-info">';
+		echo '<p><strong>Performance Features Status:</strong> Performance optimization features are being loaded...</p>';
+		echo '<p>This dashboard provides insights into plugin performance, caching, and optimization metrics.</p>';
+		echo '</div>';
+		echo '<div class="card">';
+		echo '<h2>Performance Metrics</h2>';
+		echo '<ul>';
+		echo '<li>🚀 Cache Performance</li>';
+		echo '<li>⚡ Query Optimization</li>';
+		echo '<li>📈 Response Times</li>';
+		echo '<li>🔧 System Resources</li>';
+		echo '</ul>';
+		echo '</div>';
+		echo '</div>';
+	}elseif(isset($_REQUEST['page']) && $_REQUEST['page'] == "mq_security_dashboard"  && $plugin_activated == 1){
+		$current_tab_security_dashboard="Active";
+		// Security Dashboard content
+		echo '<div class="wrap">';
+		echo '<h1>🛡️ Security Dashboard</h1>';
+		echo '<div class="notice notice-info">';
+		echo '<p><strong>Security Features Status:</strong> Security monitoring features are being loaded...</p>';
+		echo '<p>This dashboard provides comprehensive security monitoring, threat detection, and access control.</p>';
+		echo '</div>';
+		echo '<div class="card">';
+		echo '<h2>Security Features</h2>';
+		echo '<ul>';
+		echo '<li>🔒 Access Control</li>';
+		echo '<li>🛡️ Threat Detection</li>';
+		echo '<li>📊 Security Analytics</li>';
+		echo '<li>🚨 Incident Monitoring</li>';
+		echo '</ul>';
+		echo '</div>';
+		echo '</div>';
 	}else{
 		$current_tab_welcome = "Active";
 		require_once( MONEYQUIZ__PLUGIN_DIR . 'welcome.admin.php'); 

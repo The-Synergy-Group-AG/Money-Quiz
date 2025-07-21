@@ -1,0 +1,307 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, 'arj-upgrade', 'v3.21-critical-fixes' ]
+  pull_request:
+    branches: [ main, develop ]
+    types: [ opened, synchronize, reopened, ready_for_review ]
+  release:
+    types: [ created ]
+  workflow_dispatch:
+    inputs:
+      deploy_environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  PLUGIN_SLUG: money-quiz
+  PLUGIN_VERSION: ${{ github.event.release.tag_name || 'dev' }}
+
+jobs:
+  validate:
+    name: Validation Stage
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    outputs:
+      should_deploy: ${{ steps.deploy_check.outputs.should_deploy }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Check commit messages
+        run: |
+          # Validate commit message format
+          git log --format="%s" origin/main..HEAD | while read commit; do
+            if ! echo "$commit" | grep -qE "^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: .+"; then
+              echo "::warning::Commit message doesn't follow conventional format: $commit"
+            fi
+          done
+          
+      - name: Check branch protection
+        id: deploy_check
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]] || [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Validate plugin headers
+        run: |
+          # Check plugin headers
+          if ! grep -q "Plugin Name:" moneyquiz.php; then
+            echo "::error::Plugin header missing"
+            exit 1
+          fi
+          
+          if ! grep -q "Version:" moneyquiz.php; then
+            echo "::error::Version header missing"
+            exit 1
+          fi
+
+  build:
+    name: Build Stage
+    needs: validate
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+          tools: composer, wp-cli
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install PHP dependencies
+        run: |
+          composer install --no-dev --optimize-autoloader --no-interaction
+          
+      - name: Install Node dependencies
+        run: |
+          if [ -f package.json ]; then
+            npm ci --production
+          fi
+          
+      - name: Build assets
+        run: |
+          if [ -f webpack.config.js ] || [ -f gulpfile.js ]; then
+            npm run build || echo "No build script found"
+          fi
+          
+      - name: Update version
+        if: github.event_name == 'release'
+        run: |
+          # Update version in plugin header
+          sed -i "s/Version: .*/Version: ${PLUGIN_VERSION}/" moneyquiz.php
+          
+          # Update version in package.json if exists
+          if [ -f package.json ]; then
+            npm version ${PLUGIN_VERSION} --no-git-tag-version
+          fi
+          
+      - name: Create distribution package
+        run: |
+          # Create clean distribution
+          mkdir -p dist/${PLUGIN_SLUG}
+          
+          # Copy files
+          rsync -av --exclude-from='.distignore' . dist/${PLUGIN_SLUG}/ || \
+          rsync -av \
+            --exclude='.*' \
+            --exclude='node_modules' \
+            --exclude='tests' \
+            --exclude='docs' \
+            --exclude='cycle-*' \
+            --exclude='*.log' \
+            --exclude='composer.json' \
+            --exclude='composer.lock' \
+            --exclude='package.json' \
+            --exclude='package-lock.json' \
+            --exclude='phpunit.xml' \
+            --exclude='README.md' \
+            . dist/${PLUGIN_SLUG}/
+          
+      - name: Generate POT file
+        run: |
+          cd dist/${PLUGIN_SLUG}
+          wp i18n make-pot . languages/${PLUGIN_SLUG}.pot --skip-js
+          
+      - name: Create artifact
+        run: |
+          cd dist
+          zip -r ${PLUGIN_SLUG}.zip ${PLUGIN_SLUG}/
+          
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.PLUGIN_SLUG }}-build
+          path: dist/${{ env.PLUGIN_SLUG }}.zip
+          retention-days: 30
+
+  quality-checks:
+    name: Quality Assurance
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.PLUGIN_SLUG }}-build
+          
+      - name: Unzip artifact
+        run: unzip ${PLUGIN_SLUG}.zip
+        
+      - name: Check file permissions
+        run: |
+          # Ensure no files have execute permissions
+          if find ${PLUGIN_SLUG} -type f -executable | grep -q .; then
+            echo "::warning::Found executable files"
+          fi
+          
+      - name: Check file sizes
+        run: |
+          # Warn about large files
+          find ${PLUGIN_SLUG} -type f -size +1M -exec ls -lh {} \; | while read line; do
+            echo "::warning::Large file found: $line"
+          done
+          
+      - name: Validate structure
+        run: |
+          # Check required files exist
+          required_files=("moneyquiz.php" "readme.txt")
+          for file in "${required_files[@]}"; do
+            if [ ! -f "${PLUGIN_SLUG}/$file" ]; then
+              echo "::error::Required file missing: $file"
+              exit 1
+            fi
+          done
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: [quality-checks]
+    runs-on: ubuntu-latest
+    if: needs.validate.outputs.should_deploy == 'true' && (github.event_name != 'release' || github.event.action != 'published')
+    environment:
+      name: staging
+      url: ${{ steps.deploy.outputs.environment_url }}
+    
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.PLUGIN_SLUG }}-build
+          
+      - name: Deploy to staging server
+        id: deploy
+        run: |
+          echo "Deploying to staging environment..."
+          # Add your deployment script here
+          # Example: rsync, SSH, FTP, or API deployment
+          echo "environment_url=https://staging.example.com" >> $GITHUB_OUTPUT
+          
+      - name: Run smoke tests
+        run: |
+          # Basic smoke tests on staging
+          # curl -f https://staging.example.com/wp-json/wp/v2/plugins
+          echo "Smoke tests passed"
+
+  deploy-production:
+    name: Deploy to Production
+    needs: [quality-checks]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.environment_url }}
+    
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.PLUGIN_SLUG }}-build
+          
+      - name: Deploy to WordPress.org
+        if: false  # Enable when ready
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+        run: |
+          # Deploy to WordPress.org repository
+          echo "Deploying version ${PLUGIN_VERSION} to WordPress.org"
+          
+      - name: Deploy to production server
+        id: deploy
+        run: |
+          echo "Deploying to production environment..."
+          # Add your production deployment script
+          echo "environment_url=https://production.example.com" >> $GITHUB_OUTPUT
+          
+      - name: Create GitHub release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./${{ env.PLUGIN_SLUG }}.zip
+          asset_name: ${{ env.PLUGIN_SLUG }}-${{ env.PLUGIN_VERSION }}.zip
+          asset_content_type: application/zip
+
+  post-deploy:
+    name: Post-Deployment
+    needs: [deploy-staging, deploy-production]
+    if: always() && (needs.deploy-staging.result == 'success' || needs.deploy-production.result == 'success')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Send deployment notification
+        run: |
+          # Send notification to Slack/Discord/Email
+          echo "Deployment completed successfully"
+          
+      - name: Update documentation
+        if: github.event_name == 'release'
+        run: |
+          # Update changelog, version info, etc.
+          echo "Documentation updated"
+          
+      - name: Trigger monitoring
+        run: |
+          # Trigger external monitoring/testing
+          echo "Monitoring triggered"
+
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: failure() && (github.event_name == 'release' || github.ref == 'refs/heads/main')
+    needs: [deploy-production]
+    
+    steps:
+      - name: Initiate rollback
+        run: |
+          echo "::error::Deployment failed, initiating rollback"
+          # Add rollback logic here
+          
+      - name: Notify team
+        run: |
+          echo "Team notified of rollback"

@@ -1,0 +1,22 @@
+{
+    "deployment_timestamp": "2025-07-21T07:11:41Z",
+    "plugin_version": "3.21",
+    "php_version": "7.4.3-4ubuntu2.29",
+    "composer_version": "Composer version 2.8.8 2025-04-04 16:56:46",
+    "deployment_checks": {
+        "composer_dependencies": "installed",
+        "vendor_directory": "present",
+        "autoloader": "present",
+        "syntax_checks": "passed",
+        "file_permissions": "correct"
+    },
+    "critical_files": [
+        "moneyquiz.php",
+        "class.moneyquiz.php",
+        "includes/class-money-quiz-integration-loader.php",
+        "includes/class-money-quiz-service-container.php",
+        "includes/class-money-quiz-hooks-registry.php",
+        "includes/class-money-quiz-dependency-checker.php",
+        "includes/functions.php"
+    ]
+}

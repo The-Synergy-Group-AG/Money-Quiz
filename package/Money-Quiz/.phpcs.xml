@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<ruleset name="Money Quiz Coding Standards">
+    <description>WordPress coding standards for Money Quiz plugin</description>
+
+    <!-- Scan these files -->
+    <file>.</file>
+
+    <!-- Exclude paths -->
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <exclude-pattern>*/tests/*</exclude-pattern>
+    <exclude-pattern>*/cycle-*/*</exclude-pattern>
+    <exclude-pattern>*/docs/*</exclude-pattern>
+    <exclude-pattern>*.min.js</exclude-pattern>
+    <exclude-pattern>*.min.css</exclude-pattern>
+
+    <!-- Use WordPress-Extra ruleset -->
+    <rule ref="WordPress-Extra">
+        <!-- Allow short array syntax -->
+        <exclude name="Generic.Arrays.DisallowShortArraySyntax.Found"/>
+        
+        <!-- Allow some flexibility for legacy code -->
+        <exclude name="WordPress.WP.DeprecatedFunctions"/>
+        <exclude name="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound"/>
+    </rule>
+
+    <!-- Include PHP compatibility checks -->
+    <rule ref="PHPCompatibilityWP"/>
+
+    <!-- PHP version compatibility -->
+    <config name="testVersion" value="7.4-"/>
+    <config name="minimum_supported_wp_version" value="5.8"/>
+
+    <!-- Configure WordPress rules -->
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="money-quiz"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Security rules with higher priority -->
+    <rule ref="WordPress.Security.EscapeOutput">
+        <type>error</type>
+        <severity>10</severity>
+    </rule>
+    
+    <rule ref="WordPress.Security.NonceVerification">
+        <type>error</type>
+        <severity>10</severity>
+    </rule>
+    
+    <rule ref="WordPress.Security.ValidatedSanitizedInput">
+        <type>error</type>
+        <severity>10</severity>
+    </rule>
+
+    <!-- Performance rules -->
+    <rule ref="WordPress.DB.DirectDatabaseQuery">
+        <type>warning</type>
+    </rule>
+    
+    <rule ref="WordPress.DB.SlowDBQuery">
+        <type>warning</type>
+    </rule>
+
+    <!-- Code quality settings -->
+    <arg name="colors"/>
+    <arg value="ps"/>
+    <arg name="basepath" value="./"/>
+    <arg name="parallel" value="8"/>
+    <arg name="extensions" value="php"/>
+</ruleset>

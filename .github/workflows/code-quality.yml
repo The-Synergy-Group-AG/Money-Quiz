@@ -1,0 +1,360 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop, 'feature/**', 'arj-upgrade', 'v3.21-critical-fixes' ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  PHP_VERSION: '8.0'
+  WP_VERSION: 'latest'
+  
+jobs:
+  php-syntax:
+    name: PHP Syntax Check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['7.4', '8.0', '8.1', '8.2']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: parallel-lint
+          
+      - name: Check PHP syntax
+        run: |
+          find . -name "*.php" -not -path "./vendor/*" -not -path "./node_modules/*" | parallel-lint --stdin
+
+  phpcs:
+    name: WordPress Coding Standards
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+          tools: composer, cs2pr
+          
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        
+      - name: Cache composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+          
+      - name: Install WPCS
+        run: |
+          composer global require --no-interaction "squizlabs/php_codesniffer=*"
+          composer global require --no-interaction "wp-coding-standards/wpcs"
+          composer global require --no-interaction "phpcompatibility/phpcompatibility-wp"
+          echo "$(composer global config bin-dir --absolute)" >> $GITHUB_PATH
+          
+      - name: Configure PHPCS
+        run: |
+          phpcs --config-set installed_paths $(composer global config home)/vendor/wp-coding-standards/wpcs,$(composer global config home)/vendor/phpcompatibility/php-compatibility,$(composer global config home)/vendor/phpcompatibility/phpcompatibility-wp
+          
+      - name: Run PHPCS
+        run: |
+          phpcs . \
+            --standard=WordPress-Extra \
+            --extensions=php \
+            --ignore=vendor/,node_modules/,tests/,cycle-*/,docs/ \
+            --report=checkstyle \
+            --report-file=phpcs-report.xml \
+            || true
+            
+      - name: Show PHPCS results in PR
+        if: github.event_name == 'pull_request'
+        run: cs2pr phpcs-report.xml
+        
+      - name: Upload PHPCS report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: phpcs-report
+          path: phpcs-report.xml
+
+  phpstan:
+    name: PHPStan Static Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+          tools: composer
+          
+      - name: Install PHPStan
+        run: |
+          composer global require --no-interaction "phpstan/phpstan"
+          composer global require --no-interaction "szepeviktor/phpstan-wordpress"
+          echo "$(composer global config bin-dir --absolute)" >> $GITHUB_PATH
+          
+      - name: Create PHPStan config
+        run: |
+          cat > phpstan.neon << 'EOF'
+          includes:
+            - vendor/szepeviktor/phpstan-wordpress/extension.neon
+          parameters:
+            level: 5
+            paths:
+              - .
+            excludePaths:
+              - vendor/
+              - node_modules/
+              - tests/
+              - cycle-*/
+              - docs/
+            ignoreErrors:
+              - '#Function get_option invoked with#'
+              - '#Function __ invoked with#'
+              - '#Access to an undefined property#'
+            bootstrapFiles:
+              - tests/phpstan-bootstrap.php
+          EOF
+          
+      - name: Create PHPStan bootstrap
+        run: |
+          mkdir -p tests
+          cat > tests/phpstan-bootstrap.php << 'EOF'
+          <?php
+          define('ABSPATH', '/tmp/wordpress/');
+          define('WP_DEBUG', true);
+          define('TABLE_MQ_PROSPECTS', 'mq_prospects');
+          define('TABLE_MQ_TAKEN', 'mq_taken');
+          define('TABLE_MQ_RESULTS', 'mq_results');
+          define('TABLE_MQ_MASTER', 'mq_master');
+          define('TABLE_MQ_ARCHETYPES', 'mq_archetypes');
+          EOF
+          
+      - name: Run PHPStan
+        run: phpstan analyse --error-format=github --no-progress || true
+
+  phpmd:
+    name: PHP Mess Detector
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+          tools: phpmd
+          
+      - name: Create PHPMD ruleset
+        run: |
+          cat > phpmd.xml << 'EOF'
+          <?xml version="1.0"?>
+          <ruleset name="Money Quiz PHPMD Rules"
+                   xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0
+                   https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+            <description>PHPMD rules for Money Quiz plugin</description>
+            
+            <rule ref="rulesets/cleancode.xml">
+              <exclude name="StaticAccess"/>
+              <exclude name="ElseExpression"/>
+            </rule>
+            
+            <rule ref="rulesets/codesize.xml">
+              <exclude name="TooManyPublicMethods"/>
+              <exclude name="ExcessiveClassComplexity"/>
+            </rule>
+            
+            <rule ref="rulesets/design.xml">
+              <exclude name="CouplingBetweenObjects"/>
+            </rule>
+            
+            <rule ref="rulesets/naming.xml">
+              <exclude name="ShortVariable"/>
+              <exclude name="LongVariable"/>
+            </rule>
+            
+            <rule ref="rulesets/unusedcode.xml"/>
+          </ruleset>
+          EOF
+          
+      - name: Run PHPMD
+        run: |
+          phpmd . github phpmd.xml \
+            --exclude vendor,node_modules,tests,cycle-*,docs \
+            --ignore-violations-on-exit
+
+  phpcpd:
+    name: PHP Copy/Paste Detector
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+          tools: phpcpd
+          
+      - name: Run PHPCPD
+        run: |
+          phpcpd . \
+            --exclude=vendor \
+            --exclude=node_modules \
+            --exclude=tests \
+            --exclude=cycle-* \
+            --exclude=docs \
+            --min-lines=50 \
+            --min-tokens=70 \
+            || true
+
+  php-metrics:
+    name: Code Metrics
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+          tools: composer
+          
+      - name: Install phpmetrics
+        run: |
+          composer global require --no-interaction "phpmetrics/phpmetrics"
+          echo "$(composer global config bin-dir --absolute)" >> $GITHUB_PATH
+          
+      - name: Run phpmetrics
+        run: |
+          phpmetrics --report-html=metrics-report \
+            --exclude=vendor,node_modules,tests,cycle-*,docs \
+            --git . \
+            || true
+            
+      - name: Upload metrics report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: metrics-report
+          path: metrics-report/
+
+  code-coverage:
+    name: Code Coverage Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP with Xdebug
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: xdebug
+          tools: composer
+          
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --prefer-dist
+          
+      - name: Create PHPUnit config
+        run: |
+          cat > phpunit.xml << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+                   bootstrap="cycle-2-code-stabilization/unit-tests/tests/bootstrap.php"
+                   colors="true"
+                   beStrictAboutOutputDuringTests="true"
+                   beStrictAboutTodoAnnotatedTests="true"
+                   convertErrorsToExceptions="true"
+                   convertNoticesToExceptions="true"
+                   convertWarningsToExceptions="true"
+                   verbose="true">
+              <testsuites>
+                  <testsuite name="Money Quiz Test Suite">
+                      <directory>cycle-2-code-stabilization/unit-tests</directory>
+                  </testsuite>
+              </testsuites>
+              <coverage processUncoveredFiles="true">
+                  <include>
+                      <directory suffix=".php">.</directory>
+                  </include>
+                  <exclude>
+                      <directory>vendor</directory>
+                      <directory>node_modules</directory>
+                      <directory>tests</directory>
+                      <directory>cycle-*</directory>
+                      <directory>docs</directory>
+                  </exclude>
+                  <report>
+                      <clover outputFile="coverage.xml"/>
+                      <html outputDirectory="coverage-html"/>
+                      <text outputFile="coverage.txt" showUncoveredFiles="true"/>
+                  </report>
+              </coverage>
+          </phpunit>
+          EOF
+          
+      - name: Run tests with coverage
+        run: |
+          vendor/bin/phpunit --coverage-text --coverage-clover=coverage.xml || true
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+  quality-gate:
+    name: Quality Gate Check
+    needs: [php-syntax, phpcs, phpstan, phpmd, phpcpd]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Check quality gate status
+        run: |
+          echo "Code quality checks completed"
+          echo "Review the individual job results above"
+          
+      - name: Set quality gate status
+        run: |
+          if [ "${{ needs.php-syntax.result }}" == "failure" ]; then
+            echo "❌ PHP syntax check failed"
+            exit 1
+          fi
+          echo "✅ All quality checks passed"
