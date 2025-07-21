@@ -57,15 +57,20 @@ class Money_Quiz_Service_Container {
      * Initialize all services
      */
     public function initialize() {
-        // Register all service factories
-        $this->registerCoreServices();
-        $this->registerAIServices();
-        $this->registerSecurityServices();
-        $this->registerPerformanceServices();
-        $this->registerEnhancementServices();
-        
-        // Initialize eager services
-        $this->initializeEagerServices();
+        try {
+            // Register all service factories
+            $this->registerCoreServices();
+            $this->registerAIServices();
+            $this->registerSecurityServices();
+            $this->registerPerformanceServices();
+            $this->registerEnhancementServices();
+            
+            // Initialize eager services
+            $this->initializeEagerServices();
+        } catch (Exception $e) {
+            // Log error but don't crash the plugin
+            error_log('MoneyQuiz Service Container Error: ' . $e->getMessage());
+        }
     }
     
     /**
@@ -309,9 +314,3 @@ class Money_Quiz_Service_Container {
     }
 }
 
-/**
- * Helper function to get service
- */
-function money_quiz_service($name) {
-    return Money_Quiz_Service_Container::getInstance()->get($name);
-}

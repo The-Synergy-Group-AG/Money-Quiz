@@ -12,32 +12,37 @@ class Money_Quiz_Hooks_Registry {
      * Register all hooks and filters
      */
     public static function register() {
-        // Core WordPress hooks
-        add_action('init', [__CLASS__, 'init_features'], 5);
-        add_action('plugins_loaded', [__CLASS__, 'load_textdomain']);
-        add_action('admin_init', [__CLASS__, 'admin_init']);
-        add_action('admin_menu', [__CLASS__, 'admin_menus'], 20);
-        add_action('wp_enqueue_scripts', [__CLASS__, 'enqueue_scripts']);
-        add_action('admin_enqueue_scripts', [__CLASS__, 'admin_enqueue_scripts']);
-        
-        // REST API
-        add_action('rest_api_init', [__CLASS__, 'register_rest_routes']);
-        
-        // AJAX handlers
-        add_action('wp_ajax_money_quiz_analytics', [__CLASS__, 'handle_analytics_ajax']);
-        add_action('wp_ajax_nopriv_money_quiz_analytics', [__CLASS__, 'handle_analytics_ajax']);
-        
-        // Cron jobs
-        add_action('money_quiz_hourly_cron', [__CLASS__, 'hourly_cron_tasks']);
-        add_action('money_quiz_daily_cron', [__CLASS__, 'daily_cron_tasks']);
-        
-        // Custom filters
-        add_filter('money_quiz_ai_providers', [__CLASS__, 'register_ai_providers']);
-        add_filter('money_quiz_cache_strategies', [__CLASS__, 'register_cache_strategies']);
-        add_filter('money_quiz_security_rules', [__CLASS__, 'register_security_rules']);
-        
-        // Schedule cron events
-        self::schedule_cron_events();
+        try {
+            // Core WordPress hooks
+            add_action('init', [__CLASS__, 'init_features'], 5);
+            add_action('plugins_loaded', [__CLASS__, 'load_textdomain']);
+            add_action('admin_init', [__CLASS__, 'admin_init']);
+            add_action('admin_menu', [__CLASS__, 'admin_menus'], 20);
+            add_action('wp_enqueue_scripts', [__CLASS__, 'enqueue_scripts']);
+            add_action('admin_enqueue_scripts', [__CLASS__, 'admin_enqueue_scripts']);
+            
+            // REST API
+            add_action('rest_api_init', [__CLASS__, 'register_rest_routes']);
+            
+            // AJAX handlers
+            add_action('wp_ajax_money_quiz_analytics', [__CLASS__, 'handle_analytics_ajax']);
+            add_action('wp_ajax_nopriv_money_quiz_analytics', [__CLASS__, 'handle_analytics_ajax']);
+            
+            // Cron jobs
+            add_action('money_quiz_hourly_cron', [__CLASS__, 'hourly_cron_tasks']);
+            add_action('money_quiz_daily_cron', [__CLASS__, 'daily_cron_tasks']);
+            
+            // Custom filters
+            add_filter('money_quiz_ai_providers', [__CLASS__, 'register_ai_providers']);
+            add_filter('money_quiz_cache_strategies', [__CLASS__, 'register_cache_strategies']);
+            add_filter('money_quiz_security_rules', [__CLASS__, 'register_security_rules']);
+            
+            // Schedule cron events
+            self::schedule_cron_events();
+        } catch (Exception $e) {
+            // Log error but don't crash the plugin
+            error_log('MoneyQuiz Hooks Registry Error: ' . $e->getMessage());
+        }
     }
     
     /**
@@ -95,40 +100,9 @@ class Money_Quiz_Hooks_Registry {
      * Register admin menus
      */
     public static function admin_menus() {
-        // Main menu is already added by original plugin
-        // Add submenus for new features
-        
-        if (current_user_can('manage_options')) {
-            // AI Dashboard submenu
-            add_submenu_page(
-                'moneyquiz',
-                __('AI Dashboard', 'money-quiz'),
-                __('AI Dashboard', 'money-quiz'),
-                'manage_options',
-                'money-quiz-ai',
-                [__CLASS__, 'render_ai_dashboard']
-            );
-            
-            // Performance submenu
-            add_submenu_page(
-                'moneyquiz',
-                __('Performance', 'money-quiz'),
-                __('Performance', 'money-quiz'),
-                'manage_options',
-                'money-quiz-performance',
-                [__CLASS__, 'render_performance_dashboard']
-            );
-            
-            // Security submenu
-            add_submenu_page(
-                'moneyquiz',
-                __('Security', 'money-quiz'),
-                __('Security', 'money-quiz'),
-                'manage_options',
-                'money-quiz-security',
-                [__CLASS__, 'render_security_dashboard']
-            );
-        }
+        // Menu registration is now handled by the main plugin file
+        // This function is kept for compatibility but no longer adds menus
+        // to avoid duplicate menu items
     }
     
     /**

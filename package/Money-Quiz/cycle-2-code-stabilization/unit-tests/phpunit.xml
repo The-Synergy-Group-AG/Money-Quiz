@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         cacheResultFile=".phpunit.cache/test-results"
+         executionOrder="depends,defects"
+         forceCoversAnnotation="false"
+         beStrictAboutCoversAnnotation="false"
+         beStrictAboutOutputDuringTests="true"
+         beStrictAboutTodoAnnotatedTests="true"
+         convertDeprecationsToExceptions="true"
+         failOnRisky="true"
+         failOnWarning="true"
+         verbose="true">
+    
+    <testsuites>
+        <testsuite name="Security Tests">
+            <file>worker-8-security-tests.php</file>
+        </testsuite>
+        <testsuite name="Functionality Tests">
+            <file>worker-9-functionality-tests.php</file>
+        </testsuite>
+        <testsuite name="All Tests">
+            <directory>.</directory>
+        </testsuite>
+    </testsuites>
+
+    <coverage cacheDirectory=".phpunit.cache/code-coverage"
+              processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">../../</directory>
+        </include>
+        <exclude>
+            <directory>../../tests</directory>
+            <directory>../../vendor</directory>
+        </exclude>
+        <report>
+            <clover outputFile="coverage.xml"/>
+            <html outputDirectory="coverage-html"/>
+            <text outputFile="coverage.txt" showUncoveredFiles="true"/>
+        </report>
+    </coverage>
+
+    <php>
+        <const name="WP_TESTS_DOMAIN" value="example.org"/>
+        <const name="WP_TESTS_EMAIL" value="admin@example.org"/>
+        <const name="WP_TESTS_TITLE" value="Test Blog"/>
+        <const name="WP_PHP_BINARY" value="php"/>
+        <const name="MONEYQUIZ_TESTING" value="true"/>
+    </php>
+
+    <logging>
+        <junit outputFile="test-results.xml"/>
+        <testdoxHtml outputFile="testdox.html"/>
+        <testdoxText outputFile="testdox.txt"/>
+    </logging>
+</phpunit>
