@@ -13,6 +13,12 @@ class Money_Quiz_Integration_Loader {
      */
     public static function load_features() {
         try {
+            // Check if WordPress is fully loaded
+            if (!function_exists('plugin_dir_path') || !function_exists('plugin_dir_url') || !function_exists('plugin_basename')) {
+                error_log('MoneyQuiz: WordPress not fully loaded, deferring integration loader');
+                return;
+            }
+            
             $plugin_path = plugin_dir_path(dirname(__FILE__));
             
             // Cycle 3 - Architecture Transformation
@@ -39,12 +45,40 @@ class Money_Quiz_Integration_Loader {
     }
     
     /**
+     * Check if cycle file dependencies exist
+     */
+    private static function check_cycle_dependencies($cycle_path) {
+        $required_files = [
+            'mvc-implementation/worker-1-core-plugin-class.php',
+            'mvc-implementation/worker-2-controllers.php',
+            'service-layer/worker-4-database-service.php',
+            'data-models/worker-7-core-models.php',
+            'utilities/worker-9-utilities-helpers.php'
+        ];
+        
+        foreach ($required_files as $file) {
+            if (!file_exists($cycle_path . $file)) {
+                error_log('MoneyQuiz: Required cycle file missing: ' . $cycle_path . $file);
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
      * Load Cycle 3 - Architecture Transformation
      */
     private static function load_cycle_3($base_path) {
         $cycle_path = $base_path . 'cycle-3-architecture-transformation/';
         
         if (file_exists($cycle_path)) {
+            // Check dependencies before loading
+            if (!self::check_cycle_dependencies($cycle_path)) {
+                error_log('MoneyQuiz: Cycle 3 dependencies missing, skipping load');
+                return;
+            }
+            
             // MVC Implementation
             self::safe_require_once($cycle_path . 'mvc-implementation/worker-1-core-plugin-class.php');
             self::safe_require_once($cycle_path . 'mvc-implementation/worker-2-controllers.php');
@@ -63,7 +97,7 @@ class Money_Quiz_Integration_Loader {
             // Utilities
             self::safe_require_once($cycle_path . 'utilities/worker-9-utilities-helpers.php');
             
-            // Integration
+            // Integration (only if all dependencies exist)
             self::safe_require_once($cycle_path . 'integration/worker-10-component-integration.php');
         }
     }
@@ -228,10 +262,31 @@ class Money_Quiz_Integration_Loader {
     private static function safe_require_once($file_path) {
         if (file_exists($file_path)) {
             try {
+                // Check if WordPress functions are available before loading cycle files
+                if (strpos($file_path, 'cycle-') !== false) {
+                    if (!function_exists('plugin_dir_path') || !function_exists('plugin_dir_url') || !function_exists('plugin_basename')) {
+                        error_log('MoneyQuiz: WordPress functions not available, skipping cycle file: ' . $file_path);
+                        return;
+                    }
+                    
+                    // Additional check for cycle files - verify all dependencies exist
+                    if (strpos($file_path, 'worker-10-component-integration.php') !== false) {
+                        $autoloader_path = dirname($file_path) . '/includes/class-autoloader.php';
+                        if (!file_exists($autoloader_path)) {
+                            error_log('MoneyQuiz: Required autoloader missing, skipping component integration: ' . $autoloader_path);
+                            return;
+                        }
+                    }
+                }
+                
                 require_once $file_path;
             } catch (Exception $e) {
                 error_log('MoneyQuiz: Failed to load file ' . $file_path . ': ' . $e->getMessage());
+            } catch (Error $e) {
+                error_log('MoneyQuiz: Fatal error loading file ' . $file_path . ': ' . $e->getMessage());
             }
+        } else {
+            error_log('MoneyQuiz: File does not exist: ' . $file_path);
         }
     }
 }
