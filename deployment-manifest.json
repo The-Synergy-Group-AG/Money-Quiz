@@ -11,12 +11,12 @@
         "file_permissions": "correct"
     },
     "critical_files": [
-        "moneyquiz.php"
-        "class.moneyquiz.php"
-        "includes/class-money-quiz-integration-loader.php"
-        "includes/class-money-quiz-service-container.php"
-        "includes/class-money-quiz-hooks-registry.php"
-        "includes/class-money-quiz-dependency-checker.php"
+        "moneyquiz.php",
+        "class.moneyquiz.php",
+        "includes/class-money-quiz-integration-loader.php",
+        "includes/class-money-quiz-service-container.php",
+        "includes/class-money-quiz-hooks-registry.php",
+        "includes/class-money-quiz-dependency-checker.php",
         "includes/functions.php"
     ]
 }
