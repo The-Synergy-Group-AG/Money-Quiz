@@ -6,7 +6,7 @@
 Plugin Name: Money Quiz
 Plugin URI: https://www.101businessinsights.com/
 Description: The Synergy Group AG - Advanced Money Quiz Plugin with Critical Failure Prevention System
-Version: 3.22.6
+Version: 3.22.7
 Author: The Synergy Group AG
 Author URI: https://www.101businessinsights.com/
 License: Premium 
@@ -30,7 +30,7 @@ if(strpos($mq_plugin_url, 'http') === false) {
 	$mq_plugin_url = (substr($site_url, -1) === '/') ? substr($site_url, 0, -1). $mq_plugin_url : $site_url. $mq_plugin_url;
 }
 
-define( 'MONEYQUIZ_VERSION', '3.22.6' );
+define( 'MONEYQUIZ_VERSION', '3.22.7' );
 define( 'MONEYQUIZ__MINIMUM_WP_VERSION', '2' );
 define( 'MONEYQUIZ__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MONEYQUIZ_DELETE_LIMIT', 100000 );
@@ -42,7 +42,15 @@ define( 'MONEYQUIZ_PLUGIN_SLUG', 'money-quiz' );
 define( 'MONEYQUIZ_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 define( 'MONEYQUIZ_PLUGIN_FILE', __FILE__ );
 
-define( 'MONEYQUIZ_BUSINESS_INSIGHTS_EMAIL', 'andre@theSynergyGroup.ch' ); // live email
+// SECURITY FIX: Use WordPress options instead of hardcoded email
+if (!defined('MONEYQUIZ_BUSINESS_INSIGHTS_EMAIL')) {
+    $business_email = get_option('moneyquiz_business_insights_email');
+    if (empty($business_email)) {
+        $business_email = 'andre@theSynergyGroup.ch'; // Default fallback
+        update_option('moneyquiz_business_insights_email', $business_email);
+    }
+    define('MONEYQUIZ_BUSINESS_INSIGHTS_EMAIL', $business_email);
+}
 
 // This is the secret key for API authentication. You configured it in the settings menu of the license manager plugin.
 // SECURITY FIX: Use WordPress options instead of hardcoded secrets
@@ -971,30 +979,54 @@ This is your chance to gain deeper insights into your financial mindset and star
 	/** End */
 	// to process all admin forms at one place
 	if(isset($_POST['action']) && $_POST['action'] == "update"){
+		// SECURITY FIX: Add nonce verification and input sanitization
+		// RCE VULNERABILITY PREVENTION: All form inputs are now sanitized to prevent
+		// command injection and other remote code execution attacks
+		if (!wp_verify_nonce($_POST['_wpnonce'], 'moneyquiz_update_action')) {
+			wp_die('Security check failed');
+		}
+		
+		if (!current_user_can('manage_options')) {
+			wp_die('Insufficient permissions');
+		}
 		
 		foreach($_POST['post_data'] as $key_id=>$new_val){
-			$new_val1 = $new_val;
+			// SECURITY FIX: Sanitize inputs to prevent SQL injection and XSS
+			$sanitized_key = intval($key_id);
+			$sanitized_val = sanitize_text_field($new_val);
+			
 			$wpdb->update( 
 				$table_prefix.TABLE_MQ_COACH, 
 				array( 
-					'Value' => $new_val1
+					'Value' => $sanitized_val
 				), 
-				array( 'ID' => $key_id )
+				array( 'ID' => $sanitized_key )
 			);
 		}
 		$save_msg = "<div class='data_saved'>Changes saved successfully.</div>";
 	}
 	/** Quiz result  */
 	if(isset($_POST['action']) && $_POST['action'] == "quiz_result_setting"){
+		// SECURITY FIX: Add nonce verification and input sanitization
+		if (!wp_verify_nonce($_POST['_wpnonce'], 'moneyquiz_quiz_result_action')) {
+			wp_die('Security check failed');
+		}
+		
+		if (!current_user_can('manage_options')) {
+			wp_die('Insufficient permissions');
+		}
 		
 		foreach($_POST['quiz_result_setting'] as $key_id=>$new_val){
-			$new_val1 = $new_val;
+			// SECURITY FIX: Sanitize inputs to prevent SQL injection and XSS
+			$sanitized_key = intval($key_id);
+			$sanitized_val = sanitize_text_field($new_val);
+			
 			$wpdb->update( 
 				$table_prefix.QUIZ_RESULT, 
 				array( 
-					'value' => $new_val1
+					'value' => $sanitized_val
 				), 
-				array( 'id' => $key_id )
+				array( 'id' => $sanitized_key )
 			);
 		}
 		$save_msg = "<div class='data_saved'>Changes saved successfully.</div>";
@@ -1002,17 +1034,26 @@ This is your chance to gain deeper insights into your financial mindset and star
 	/** end */
 	// to process money quiz template layout setting
 	if(isset($_POST['action']) && $_POST['action'] == "page_template_layout"){
+		// SECURITY FIX: Add nonce verification and input sanitization
+		if (!wp_verify_nonce($_POST['_wpnonce'], 'moneyquiz_template_layout_action')) {
+			wp_die('Security check failed');
+		}
+		
+		if (!current_user_can('manage_options')) {
+			wp_die('Insufficient permissions');
+		}
 		
 		foreach($_POST['post_data'] as $key_id=>$new_val){
-			$new_val1 = $new_val;
+			// SECURITY FIX: Sanitize inputs to prevent SQL injection and XSS
+			$sanitized_key = intval($key_id);
+			$sanitized_val = sanitize_text_field($new_val);
 			
-			//$new_val1 = htmlspecialchars($new_val, ENT_QUOTES, 'UTF-8');
 			$wpdb->update( 
 				$table_prefix.TABLE_MQ_MONEY_LAYOUT, 
 				array( 
-					'value' => $new_val1
+					'value' => $sanitized_val
 				), 
-				array( 'Moneytemplate_ID' => $key_id )
+				array( 'Moneytemplate_ID' => $sanitized_key )
 			);
 		}
 		$save_msg = "<div class='data_saved'>Changes saved successfully.</div>";
@@ -1021,17 +1062,26 @@ This is your chance to gain deeper insights into your financial mindset and star
 	
 	// To Process change Screen 1 to 5
 	if(isset($_POST['action']) && $_POST['action'] == "page_question_screen"){
+		// SECURITY FIX: Add nonce verification and input sanitization
+		if (!wp_verify_nonce($_POST['_wpnonce'], 'moneyquiz_question_screen_action')) {
+			wp_die('Security check failed');
+		}
+		
+		if (!current_user_can('manage_options')) {
+			wp_die('Insufficient permissions');
+		}
 		
 		foreach($_POST['post_data'] as $key_id=>$new_val){
-			$new_val1 = $new_val;
+			// SECURITY FIX: Sanitize inputs to prevent SQL injection and XSS
+			$sanitized_key = intval($key_id);
+			$sanitized_val = sanitize_text_field($new_val);
 			
-			//$new_val1 = htmlspecialchars($new_val, ENT_QUOTES, 'UTF-8');
 			$wpdb->update( 
 				$table_prefix.TABLE_MQ_QUESTION_SCREEN, 
 				array( 
-					'value' => $new_val1
+					'value' => $sanitized_val
 				), 
-				array( 'id' => $key_id )
+				array( 'id' => $sanitized_key )
 			);
 		}
 		$save_msg = "<div class='data_saved'>Changes saved successfully.</div>";
@@ -1039,17 +1089,26 @@ This is your chance to gain deeper insights into your financial mindset and star
 	//end
 	// To Process change Screen 1 to 5
 	if(isset($_POST['action']) && $_POST['action'] == "email_setting"){
+		// SECURITY FIX: Add nonce verification and input sanitization
+		if (!wp_verify_nonce($_POST['_wpnonce'], 'moneyquiz_email_setting_action')) {
+			wp_die('Security check failed');
+		}
+		
+		if (!current_user_can('manage_options')) {
+			wp_die('Insufficient permissions');
+		}
 		
 		foreach($_POST['post_data'] as $key_id=>$new_val){
-			$new_val1 = $new_val;
+			// SECURITY FIX: Sanitize inputs to prevent SQL injection and XSS
+			$sanitized_key = intval($key_id);
+			$sanitized_val = sanitize_text_field($new_val);
 			
-			//$new_val1 = htmlspecialchars($new_val, ENT_QUOTES, 'UTF-8');
 			$wpdb->update( 
 				$table_prefix.TABLE_EMAIL_SETTING, 
 				array( 
-					'value' => $new_val1
+					'value' => $sanitized_val
 				), 
-				array( 'id' => $key_id )
+				array( 'id' => $sanitized_key )
 			);
 		}
 		$save_msg = "<div class='data_saved'>Changes saved successfully.</div>";
@@ -1057,14 +1116,26 @@ This is your chance to gain deeper insights into your financial mindset and star
 	//end
 	// to process Archetype form 
  	if(isset($_POST['action']) && $_POST['action'] == "archetype"){
+		// SECURITY FIX: Add nonce verification and input sanitization
+		if (!wp_verify_nonce($_POST['_wpnonce'], 'moneyquiz_archetype_action')) {
+			wp_die('Security check failed');
+		}
+		
+		if (!current_user_can('manage_options')) {
+			wp_die('Insufficient permissions');
+		}
+		
 		foreach($_POST['post_data'] as $key_id=>$new_val){
-			$new_val1 = $new_val;
+			// SECURITY FIX: Sanitize inputs to prevent SQL injection and XSS
+			$sanitized_key = intval($key_id);
+			$sanitized_val = sanitize_text_field($new_val);
+			
 			$wpdb->update( 
 				$table_prefix.TABLE_MQ_ARCHETYPES, 
 				array( 
-					'Value' => $new_val1
+					'Value' => $sanitized_val
 				), 
-				array( 'ID' => $key_id )
+				array( 'ID' => $sanitized_key )
 			);
 		}
 		$save_msg = "<div class='data_saved'>Changes saved successfully.</div>";
@@ -1258,16 +1329,12 @@ This is your chance to gain deeper insights into your financial mindset and star
 			//$body .= '<p>Automated Email from the <b>MoneyQuiz Plugin</b></p>';  // for Money Coach logo
 			//$body .= '<p>Developer note, website address incase Moneycoach added different in tab but plugin installed on different website:'.get_site_url().'</p>';  // for Money Coach logo
 			if($post_data[33] == 'Yes'){
-				$sql_email = "SELECT * from ".$table_prefix.TABLE_MQ_RESULTS."";
-				$results_email = $wpdb->get_results($sql_email, OBJECT);
-				if($results_email){	
-					$table_str = "<br><h2> Results Table Data  </h2><table cellpadding='0' cellspacing='0' border='1'> <tr><th width='100'> Results_ID</th><th width='100'>Prospect_ID </th><th width='100'>Taken_ID </th><th width='100'> Master_ID</th><th width='100'>Score </th> </tr>";
-					foreach($results_email as $row){	
-						$table_str .= "<tr><td align='center'>".$row->Results_ID."</td><td align='center'>".$row->Prospect_ID."</td><td align='center'>".$row->Taken_ID."</td><td align='center'>".$row->Master_ID."</td><td align='center'>".$row->Score."</td></tr>";
-					}
-					$table_str .= "</table> ";
-				}
-				$body .= $table_str;
+				// SECURITY FIX: Remove database dumping to prevent data exposure
+				// DATA EXPOSURE VULNERABILITY: Previously dumped entire database results in emails
+				// This could expose sensitive user data and violate privacy regulations
+				// Only include summary statistics instead of full database results
+				$results_count = $wpdb->get_var("SELECT COUNT(*) FROM " . $table_prefix . TABLE_MQ_RESULTS);
+				$body .= "<br><p><strong>Database Summary:</strong> Total results records: " . intval($results_count) . "</p>";
 			}
 			
 			$headers = array('Content-Type: text/html; charset=UTF-8');
@@ -1368,16 +1435,12 @@ This is your chance to gain deeper insights into your financial mindset and star
 				$body .="<p>Please send renewal invoice to ".$post_data[9]."</span></p>";
 			
 				if($post_data[33] == 'Yes'){
-					$sql_email = "SELECT * from ".$table_prefix.TABLE_MQ_RESULTS."";
-					$results_email = $wpdb->get_results($sql_email, OBJECT);
-					if($results_email){	
-						$table_str = "<br><h2> Results Table Data  </h2><table cellpadding='0' cellspacing='0' border='1'> <tr><th width='100'> Results_ID</th><th width='100'>Prospect_ID </th><th width='100'>Taken_ID </th><th width='100'> Master_ID</th><th width='100'>Score </th> </tr>";
-						foreach($results_email as $row){	
-							$table_str .= "<tr><td align='center'>".$row->Results_ID."</td><td align='center'>".$row->Prospect_ID."</td><td align='center'>".$row->Taken_ID."</td><td align='center'>".$row->Master_ID."</td><td align='center'>".$row->Score."</td></tr>";
-						}
-						$table_str .= "</table> ";
-					}
-					$body .= $table_str;
+					// SECURITY FIX: Remove database dumping to prevent data exposure
+					// DATA EXPOSURE VULNERABILITY: Previously dumped entire database results in emails
+					// This could expose sensitive user data and violate privacy regulations
+					// Only include summary statistics instead of full database results
+					$results_count = $wpdb->get_var("SELECT COUNT(*) FROM " . $table_prefix . TABLE_MQ_RESULTS);
+					$body .= "<br><p><strong>Database Summary:</strong> Total results records: " . intval($results_count) . "</p>";
 				}
 			
 				$body .= '<p>Automated Email from the <b>MoneyQuiz Plugin</b></p>';  // for Money Coach logo

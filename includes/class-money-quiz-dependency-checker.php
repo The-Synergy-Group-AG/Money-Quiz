@@ -17,7 +17,7 @@ class Money_Quiz_Dependency_Checker {
         add_action('admin_notices', [__CLASS__, 'check_dependencies']);
         add_action('admin_init', [__CLASS__, 'dismiss_notice']);
         add_action('wp_ajax_money_quiz_dismiss_dependency_notice', [__CLASS__, 'ajax_dismiss_notice']);
-        add_action('wp_ajax_money_quiz_run_composer', [__CLASS__, 'ajax_run_composer']);
+        // SECURITY FIX: Removed dangerous ajax_run_composer method - RCE vulnerability
     }
     
     /**
@@ -256,6 +256,11 @@ class Money_Quiz_Dependency_Checker {
     public static function ajax_dismiss_notice() {
         check_ajax_referer('money_quiz_dismiss_notice', 'nonce');
         
+        // SECURITY FIX: Add capability check to prevent unauthorized access
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions');
+        }
+        
         $notice_id = sanitize_text_field($_POST['notice_id']);
         set_transient('money_quiz_dismissed_' . $notice_id, true, WEEK_IN_SECONDS);
         
@@ -263,34 +268,16 @@ class Money_Quiz_Dependency_Checker {
     }
     
     /**
-     * AJAX handler for running composer install
+     * SECURITY FIX: Removed ajax_run_composer method - Critical RCE vulnerability
+     * 
+     * This method was removed because it allowed arbitrary command execution via exec().
+     * Composer should be run manually during deployment, not via web interface.
+     * 
+     * RCE VULNERABILITY: This method used exec() to run shell commands, which is a
+     * critical security risk that could allow attackers to execute arbitrary code.
+     * 
+     * @deprecated Removed for security reasons
      */
-    public static function ajax_run_composer() {
-        check_ajax_referer('money_quiz_run_composer', 'nonce');
-        
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error('Insufficient permissions');
-        }
-        
-        $plugin_dir = plugin_dir_path(dirname(__FILE__));
-        $composer_path = $plugin_dir . 'composer.json';
-        
-        if (!file_exists($composer_path)) {
-            wp_send_json_error('Composer.json not found');
-        }
-        
-        // Try to run composer install
-        $output = [];
-        $return_var = 0;
-        
-        exec('cd ' . escapeshellarg($plugin_dir) . ' && composer install --no-dev --optimize-autoloader 2>&1', $output, $return_var);
-        
-        if ($return_var === 0) {
-            wp_send_json_success(['message' => 'Composer install completed successfully']);
-        } else {
-            wp_send_json_error(['message' => 'Composer install failed: ' . implode("\n", $output)]);
-        }
-    }
     
     /**
      * Get system information for debugging
