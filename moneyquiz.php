@@ -6,7 +6,7 @@
 Plugin Name: Money Quiz
 Plugin URI: https://www.101businessinsights.com/
 Description: The Synergy Group AG - Advanced Money Quiz Plugin with Critical Failure Prevention System
-Version: 3.22.5
+Version: 3.22.6
 Author: The Synergy Group AG
 Author URI: https://www.101businessinsights.com/
 License: Premium 
@@ -30,7 +30,7 @@ if(strpos($mq_plugin_url, 'http') === false) {
 	$mq_plugin_url = (substr($site_url, -1) === '/') ? substr($site_url, 0, -1). $mq_plugin_url : $site_url. $mq_plugin_url;
 }
 
-define( 'MONEYQUIZ_VERSION', '3.22.5' );
+define( 'MONEYQUIZ_VERSION', '3.22.6' );
 define( 'MONEYQUIZ__MINIMUM_WP_VERSION', '2' );
 define( 'MONEYQUIZ__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MONEYQUIZ_DELETE_LIMIT', 100000 );
@@ -45,8 +45,15 @@ define( 'MONEYQUIZ_PLUGIN_FILE', __FILE__ );
 define( 'MONEYQUIZ_BUSINESS_INSIGHTS_EMAIL', 'andre@theSynergyGroup.ch' ); // live email
 
 // This is the secret key for API authentication. You configured it in the settings menu of the license manager plugin.
-define('MONEYQUIZ_SPECIAL_SECRET_KEY', '5bcd52f5276855.46942741'); // live server
-#define('MONEYQUIZ_SPECIAL_SECRET_KEY', '5bc3996e2b4a43.53731967'); // local server
+// SECURITY FIX: Use WordPress options instead of hardcoded secrets
+if (!defined('MONEYQUIZ_SPECIAL_SECRET_KEY')) {
+    $secret_key = get_option('moneyquiz_special_secret_key');
+    if (empty($secret_key)) {
+        $secret_key = wp_generate_password(32, false);
+        update_option('moneyquiz_special_secret_key', $secret_key);
+    }
+    define('MONEYQUIZ_SPECIAL_SECRET_KEY', $secret_key);
+}
 
 // This is the URL where API query request will be sent to. This should be the URL of the site where you have installed the main license manager plugin. Get this value from the integration help page.
 define('MONEYQUIZ_LICENSE_SERVER_URL', 'https://www.101businessinsights.com'); // live server url
@@ -141,7 +148,7 @@ if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'vendor/autoload.php' ) ) {
     require_once( MONEYQUIZ__PLUGIN_DIR . 'vendor/autoload.php' );
 }
 
-// CRITICAL FAILURE PREVENTION SYSTEM - v3.22.5
+// CRITICAL FAILURE PREVENTION SYSTEM - v3.22.6
 // Load only essential components to prevent errors
 if ( file_exists( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-dependency-checker.php' ) ) {
     require_once( MONEYQUIZ__PLUGIN_DIR . 'includes/class-money-quiz-dependency-checker.php' );

@@ -35,6 +35,12 @@ class Money_Quiz_Dependency_Checker {
      * Get all dependency issues
      */
     public static function get_dependency_issues() {
+        // Check cache first for performance
+        $cached_issues = get_transient('moneyquiz_dependency_issues');
+        if ($cached_issues !== false) {
+            return $cached_issues;
+        }
+        
         $issues = [];
         
         // Check Composer autoloader
@@ -87,6 +93,9 @@ class Money_Quiz_Dependency_Checker {
                 'action' => 'upgrade_wordpress'
             ];
         }
+        
+        // Cache results for 5 minutes to improve performance
+        set_transient('moneyquiz_dependency_issues', $issues, 5 * 60);
         
         return $issues;
     }

@@ -21,23 +21,25 @@ class Money_Quiz_Integration_Loader {
             
             $plugin_path = plugin_dir_path(dirname(__FILE__));
             
-            // Cycle 3 - Architecture Transformation
-            self::load_cycle_3($plugin_path);
+            // Use WordPress actions for proper loading sequence
+            add_action('init', function() use ($plugin_path) {
+                // Load core functionality first
+                self::load_cycle_3($plugin_path);
+                self::load_cycle_4($plugin_path);
+            }, 5);
             
-            // Cycle 4 - Modern Features
-            self::load_cycle_4($plugin_path);
+            add_action('admin_init', function() use ($plugin_path) {
+                // Load admin-specific features
+                self::load_cycle_5($plugin_path);
+                self::load_cycle_6($plugin_path);
+            }, 5);
             
-            // Cycle 5 - Performance
-            self::load_cycle_5($plugin_path);
+            add_action('plugins_loaded', function() use ($plugin_path) {
+                // Load advanced features after all plugins are loaded
+                self::load_cycle_7($plugin_path);
+                self::load_cycle_10($plugin_path);
+            }, 20);
             
-            // Cycle 6 - Security
-            self::load_cycle_6($plugin_path);
-            
-            // Cycle 7 - Enhancements
-            self::load_cycle_7($plugin_path);
-            
-            // Cycle 10 - AI Optimization
-            self::load_cycle_10($plugin_path);
         } catch (Exception $e) {
             // Log error but don't crash the plugin
             error_log('MoneyQuiz Integration Loader Error: ' . $e->getMessage());
@@ -282,8 +284,19 @@ class Money_Quiz_Integration_Loader {
                 require_once $file_path;
             } catch (Exception $e) {
                 error_log('MoneyQuiz: Failed to load file ' . $file_path . ': ' . $e->getMessage());
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('MoneyQuiz Debug: Exception details - ' . $e->getTraceAsString());
+                }
             } catch (Error $e) {
                 error_log('MoneyQuiz: Fatal error loading file ' . $file_path . ': ' . $e->getMessage());
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('MoneyQuiz Debug: Error details - ' . $e->getTraceAsString());
+                }
+            } catch (ParseError $e) {
+                error_log('MoneyQuiz: Parse error in file ' . $file_path . ': ' . $e->getMessage());
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('MoneyQuiz Debug: Parse error details - ' . $e->getTraceAsString());
+                }
             }
         } else {
             error_log('MoneyQuiz: File does not exist: ' . $file_path);
