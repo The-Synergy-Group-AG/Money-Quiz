@@ -55,3 +55,13 @@ error_log
 # Package files
 *.zip
 *.tar.gz
+
+# Archive files (large binary files)
+/archives/old-versions/
+/archives/*.zip
+/archives/*.tar.gz
+
+# Keep archive documentation
+!/archives/README.md
+!/archives/version-index.json
+!/archives/changelog/

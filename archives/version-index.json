@@ -1,0 +1,225 @@
+{
+  "archive_info": {
+    "created_date": "2025-01-21",
+    "total_versions": 18,
+    "total_size_mb": 200,
+    "maintainer": "Development Team"
+  },
+  "versions": [
+    {
+      "version": "3.21",
+      "filename": "money-quiz-v3.21.zip",
+      "size_mb": 8.4,
+      "status": "production",
+      "features": [
+        "Critical failure prevention system",
+        "Enhanced menu system with AI, Performance, and Security dashboards",
+        "Automated deployment verification",
+        "Comprehensive error handling"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Latest production version"
+    },
+    {
+      "version": "3.20",
+      "filename": "money-quiz-v3.20.zip",
+      "size_mb": 8.4,
+      "status": "archived",
+      "features": [
+        "Previous stable version"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Previous stable version"
+    },
+    {
+      "version": "3.19",
+      "filename": "money-quiz-v3.19-emergency.zip",
+      "size_mb": 7.6,
+      "status": "archived",
+      "features": [
+        "Emergency fix version"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Emergency fix version - keep permanently"
+    },
+    {
+      "version": "3.18",
+      "filename": "money-quiz-v3.18.zip",
+      "size_mb": 8.4,
+      "status": "archived",
+      "features": [
+        "Legacy version"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Legacy version"
+    },
+    {
+      "version": "3.17",
+      "filename": "money-quiz-v3.17.zip",
+      "size_mb": 8.3,
+      "status": "archived",
+      "features": [
+        "Legacy version"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Legacy version"
+    },
+    {
+      "version": "3.16",
+      "filename": "money-quiz-v3.16.zip",
+      "size_mb": 8.3,
+      "status": "archived",
+      "features": [
+        "Legacy version"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Legacy version"
+    },
+    {
+      "version": "3.15",
+      "filename": "money-quiz-v3.15.zip",
+      "size_mb": 7.6,
+      "status": "archived",
+      "features": [
+        "Legacy version"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Legacy version"
+    },
+    {
+      "version": "3.14",
+      "filename": "money-quiz-v3.14.zip",
+      "size_mb": 7.6,
+      "status": "archived",
+      "features": [
+        "Legacy version"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Legacy version"
+    },
+    {
+      "version": "3.11",
+      "filename": "money-quiz-v3.11.zip",
+      "size_mb": 7.6,
+      "status": "archived",
+      "features": [
+        "Legacy version"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Legacy version"
+    },
+    {
+      "version": "3.10",
+      "filename": "money-quiz-v3.10.zip",
+      "size_mb": 7.6,
+      "status": "archived",
+      "features": [
+        "Legacy version"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Legacy version"
+    },
+    {
+      "version": "3.9",
+      "filename": "money-quiz-v3.9.zip",
+      "size_mb": 7.5,
+      "status": "archived",
+      "features": [
+        "Legacy version"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Legacy version"
+    },
+    {
+      "version": "3.8",
+      "filename": "money-quiz-v3.8.zip",
+      "size_mb": 7.5,
+      "status": "archived",
+      "features": [
+        "Legacy version"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Legacy version"
+    },
+    {
+      "version": "3.7",
+      "filename": "money-quiz-v3.7.zip",
+      "size_mb": 20,
+      "status": "archived",
+      "features": [
+        "Legacy version"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Legacy version"
+    },
+    {
+      "version": "3.6",
+      "filename": "money-quiz-v3.6.zip",
+      "size_mb": 20,
+      "status": "archived",
+      "features": [
+        "Legacy version"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Legacy version"
+    },
+    {
+      "version": "3.5",
+      "filename": "money-quiz-v3.5.zip",
+      "size_mb": 20,
+      "status": "archived",
+      "features": [
+        "Legacy version"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Legacy version"
+    },
+    {
+      "version": "3.4-updated",
+      "filename": "money-quiz-v3.4-updated.zip",
+      "size_mb": 20,
+      "status": "archived",
+      "features": [
+        "Legacy version"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Updated legacy version"
+    },
+    {
+      "version": "3.4",
+      "filename": "money-quiz-v3.4.zip",
+      "size_mb": 20,
+      "status": "archived",
+      "features": [
+        "Legacy version"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Legacy version"
+    },
+    {
+      "version": "generic",
+      "filename": "money-quiz-plugin.zip",
+      "size_mb": 20,
+      "status": "archived",
+      "features": [
+        "Generic plugin version"
+      ],
+      "archive_date": "2025-01-21",
+      "notes": "Generic plugin version"
+    }
+  ],
+  "backup_files": [
+    {
+      "filename": "moneyquiz.php.backup",
+      "size_mb": 0.075,
+      "archive_date": "2025-01-21",
+      "notes": "Backup of main plugin file"
+    }
+  ],
+  "archive_policy": {
+    "retention_period_years": 2,
+    "minimum_versions_kept": 5,
+    "emergency_versions_kept_permanently": true,
+    "backup_files_retention_years": 1
+  }
+} 
