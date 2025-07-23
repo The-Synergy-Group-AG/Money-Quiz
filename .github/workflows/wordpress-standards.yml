@@ -3,7 +3,7 @@ name: WordPress Coding Standards
 on:
   pull_request:
   push:
-    branches: [main, develop, v7-clean-implementation]
+    branches: [main, develop, v7-complete-clean]
 
 jobs:
   phpcs:

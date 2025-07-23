@@ -3,7 +3,7 @@ name: Security Scan
 on:
   pull_request:
   push:
-    branches: [main, develop, v7-clean-implementation]
+    branches: [main, develop, v7-complete-clean]
   schedule:
     - cron: '0 0 * * *'  # Daily scan at midnight UTC
 
