@@ -1,0 +1,99 @@
+name: Performance Testing
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'assets/**'
+      - 'templates/**'
+
+jobs:
+  performance:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          tools: composer
+      
+      - name: Install dependencies
+        run: |
+          if [ -f "package.json" ]; then
+            npm ci
+          fi
+          composer install --no-progress --prefer-dist --optimize-autoloader
+      
+      - name: Build assets
+        run: |
+          if [ -f "webpack.config.js" ]; then
+            npm run build
+          else
+            echo "⚠️ No webpack config found - skipping build"
+          fi
+      
+      - name: Check bundle sizes
+        run: |
+          echo "📊 Checking JavaScript bundle sizes..."
+          
+          MAX_JS_SIZE=500000  # 500KB
+          MAX_CSS_SIZE=100000 # 100KB
+          
+          # Check JS bundles
+          if [ -d "dist" ]; then
+            for file in dist/*.js; do
+              if [ -f "$file" ]; then
+                size=$(stat -c%s "$file")
+                filename=$(basename "$file")
+                echo "  $filename: $size bytes"
+                
+                if [ $size -gt $MAX_JS_SIZE ]; then
+                  echo "❌ $filename exceeds size limit ($size > $MAX_JS_SIZE bytes)"
+                  exit 1
+                fi
+              fi
+            done
+          fi
+          
+          # Check CSS bundles
+          if [ -d "dist" ]; then
+            for file in dist/*.css; do
+              if [ -f "$file" ]; then
+                size=$(stat -c%s "$file")
+                filename=$(basename "$file")
+                echo "  $filename: $size bytes"
+                
+                if [ $size -gt $MAX_CSS_SIZE ]; then
+                  echo "❌ $filename exceeds size limit ($size > $MAX_CSS_SIZE bytes)"
+                  exit 1
+                fi
+              fi
+            done
+          fi
+          
+          echo "✅ All bundle sizes within limits"
+      
+      - name: Run performance benchmarks
+        run: |
+          if [ -f "tests/performance/benchmark.php" ]; then
+            php tests/performance/benchmark.php
+          else
+            echo "⚠️ Performance benchmarks not found - skipping"
+          fi
+      
+      - name: Lighthouse CI
+        if: ${{ false }}  # Disabled until frontend is ready
+        uses: treosh/lighthouse-ci-action@v9
+        with:
+          configPath: './.lighthouserc.json'
+          uploadArtifacts: true

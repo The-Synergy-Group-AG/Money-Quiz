@@ -1,0 +1,53 @@
+name: WordPress Coding Standards
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop, v7-clean-implementation]
+
+jobs:
+  phpcs:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          tools: composer, cs2pr
+      
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+      
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
+      
+      - name: Install WordPress Coding Standards
+        run: |
+          composer global require wp-coding-standards/wpcs:"^3.0"
+          vendor/bin/phpcs --config-set installed_paths vendor/wp-coding-standards/wpcs
+      
+      - name: Run PHPCS
+        run: |
+          vendor/bin/phpcs . --standard=WordPress-Extra,WordPress-Docs --report=checkstyle | cs2pr
+      
+      - name: Check for violations
+        run: |
+          if vendor/bin/phpcs . --standard=WordPress-Extra,WordPress-Docs --report=summary | grep -q "FOUND"; then
+            echo "❌ WordPress coding standards violations found"
+            echo "Run 'composer run phpcs' locally to see details"
+            exit 1
+          else
+            echo "✅ All WordPress coding standards passed"
+          fi

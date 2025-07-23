@@ -1,0 +1,120 @@
+{
+  "project": {
+    "name": "Money Quiz v7.0",
+    "type": "WordPress Plugin",
+    "status": "Implementation Phase",
+    "requirements": "95%+ Grok approval required for each phase"
+  },
+  
+  "rules": {
+    "enforce": [
+      {
+        "id": "wordpress-coding-standards",
+        "description": "All PHP code must follow WordPress coding standards",
+        "reference": "https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/"
+      },
+      {
+        "id": "security-first-development",
+        "description": "Security must be considered in every line of code",
+        "checklist": [
+          "All database queries use prepared statements",
+          "All output is escaped with proper context",
+          "All forms include CSRF protection via nonces",
+          "All files check for ABSPATH",
+          "All user input is validated and sanitized"
+        ]
+      },
+      {
+        "id": "no-debug-in-production",
+        "description": "No debug code in production files",
+        "patterns": ["var_dump", "print_r", "console.log", "error_log", "WP_DEBUG"]
+      },
+      {
+        "id": "mandatory-testing",
+        "description": "All code must have tests",
+        "minimum_coverage": 80
+      },
+      {
+        "id": "grok-approval-required",
+        "description": "Each phase requires 95%+ Grok approval",
+        "process": "Real API calls only, no simulations"
+      }
+    ],
+    
+    "prohibit": [
+      {
+        "id": "direct-sql-concatenation",
+        "pattern": "\\$wpdb->query\\(.*\\$_(GET|POST|REQUEST)",
+        "message": "Never concatenate user input in SQL queries. Use $wpdb->prepare() (Error E001)"
+      },
+      {
+        "id": "unescaped-output",
+        "pattern": "echo \\$(?!.*esc_)",
+        "message": "All output must be escaped. Use esc_html(), esc_attr(), etc. (Error E002)"
+      },
+      {
+        "id": "raw-context-in-escaping",
+        "message": "The 'raw' context is prohibited in output escaping (Grok requirement)"
+      },
+      {
+        "id": "transient-rate-limiting",
+        "message": "Rate limiting must use database, not transients (Grok requirement)"
+      },
+      {
+        "id": "direct-file-access-without-abspath",
+        "pattern": "^(?!.*defined.*ABSPATH)",
+        "message": "All PHP files must check for ABSPATH"
+      }
+    ],
+    
+    "require": [
+      {
+        "id": "prepared-statements",
+        "description": "All database queries must use prepared statements",
+        "example": "$wpdb->get_results($wpdb->prepare('SELECT * FROM %i WHERE id = %d', $table, $id))"
+      },
+      {
+        "id": "context-aware-escaping",
+        "description": "Output escaping must match context",
+        "contexts": ["html", "attribute", "js", "url", "textarea"]
+      },
+      {
+        "id": "csrf-on-state-changes",
+        "description": "All state-changing operations must verify nonces"
+      },
+      {
+        "id": "capability-checks",
+        "description": "All admin actions must check user capabilities"
+      },
+      {
+        "id": "audit-logging",
+        "description": "Security-relevant actions must be logged"
+      }
+    ]
+  },
+  
+  "documentation": {
+    "references": [
+      "docs/40-implementation/01-coding-standards.md",
+      "docs/40-implementation/02-security-guidelines.md",
+      "docs/80-learning/01-error-catalog.md",
+      "docs/20-planning/02-v7-comprehensive-implementation-plan.md"
+    ],
+    "error_catalog": "docs/80-learning/01-error-catalog.md"
+  },
+  
+  "workflow": {
+    "pre_commit": [
+      "Run PHPCS for WordPress standards",
+      "Run PHPStan for static analysis",
+      "Run security pattern checks",
+      "Ensure tests pass with 80%+ coverage"
+    ],
+    "phase_completion": [
+      "Submit to Grok for review",
+      "Achieve 95%+ approval",
+      "Update control documents",
+      "Document any errors/learnings"
+    ]
+  }
+}

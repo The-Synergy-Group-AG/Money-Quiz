@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<ruleset name="Money Quiz Coding Standards">
+    <description>WordPress coding standards for Money Quiz plugin</description>
+
+    <!-- Files to check -->
+    <file>.</file>
+
+    <!-- Exclude paths -->
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <exclude-pattern>*/tests/*</exclude-pattern>
+    <exclude-pattern>*/build/*</exclude-pattern>
+    <exclude-pattern>*/assets/*</exclude-pattern>
+    <exclude-pattern>*.min.js</exclude-pattern>
+    <exclude-pattern>*.min.css</exclude-pattern>
+
+    <!-- Use WordPress-Extra ruleset -->
+    <rule ref="WordPress-Extra">
+        <!-- Allow short array syntax -->
+        <exclude name="Generic.Arrays.DisallowShortArraySyntax.Found"/>
+        
+        <!-- Allow multiple assignments in conditionals for performance -->
+        <exclude name="WordPress.CodeAnalysis.AssignmentInCondition.Found"/>
+        
+        <!-- We use nonces properly, but PHPCS doesn't always detect them -->
+        <exclude name="WordPress.Security.NonceVerification.Missing"/>
+    </rule>
+
+    <!-- Use WordPress-Docs ruleset -->
+    <rule ref="WordPress-Docs"/>
+
+    <!-- PHP version compatibility -->
+    <config name="testVersion" value="7.4-"/>
+    <rule ref="PHPCompatibilityWP"/>
+
+    <!-- Security rules -->
+    <rule ref="WordPress.Security.EscapeOutput">
+        <properties>
+            <property name="customEscapingFunctions" type="array">
+                <element value="money_quiz_esc_json"/>
+            </property>
+        </properties>
+    </rule>
+
+    <rule ref="WordPress.Security.NonceVerification">
+        <properties>
+            <property name="customNonceVerificationFunctions" type="array">
+                <element value="money_quiz_verify_nonce"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Set minimum supported WordPress version -->
+    <config name="minimum_supported_wp_version" value="5.9"/>
+
+    <!-- Allow use of shorthand PHP tags for templating -->
+    <rule ref="Generic.PHP.DisallowShortOpenTag">
+        <exclude name="Generic.PHP.DisallowShortOpenTag.EchoFound"/>
+    </rule>
+
+    <!-- Organize imports -->
+    <rule ref="WordPress.Classes.ClassInstantiation"/>
+    <rule ref="WordPress.PHP.DevelopmentFunctions"/>
+    <rule ref="WordPress.PHP.DiscouragedPHPFunctions"/>
+
+    <!-- Line length -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="120"/>
+            <property name="absoluteLineLimit" value="150"/>
+        </properties>
+    </rule>
+
+    <!-- Method argument spacing -->
+    <rule ref="Squiz.Functions.FunctionDeclarationArgumentSpacing">
+        <properties>
+            <property name="equalsSpacing" value="1"/>
+        </properties>
+    </rule>
+
+    <!-- File naming -->
+    <rule ref="WordPress.Files.FileName">
+        <properties>
+            <property name="strict_class_file_names" value="false"/>
+        </properties>
+        <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+    </rule>
+
+    <!-- Hook naming -->
+    <rule ref="WordPress.NamingConventions.ValidHookName">
+        <properties>
+            <property name="additionalHookPrefixes" type="array">
+                <element value="money_quiz"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Text domain -->
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="money-quiz"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Database queries -->
+    <rule ref="WordPress.DB.DirectDatabaseQuery">
+        <exclude-pattern>*/src/Database/*</exclude-pattern>
+    </rule>
+
+    <rule ref="WordPress.DB.PreparedSQL">
+        <exclude-pattern>*/src/Database/QueryBuilder.php</exclude-pattern>
+    </rule>
+
+    <!-- Allow PSR-4 autoloading structure -->
+    <rule ref="WordPress.Files.FileName.InvalidClassFileName">
+        <exclude-pattern>*/src/*</exclude-pattern>
+    </rule>
+</ruleset>

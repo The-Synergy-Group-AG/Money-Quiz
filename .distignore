@@ -1,0 +1,62 @@
+# Files and directories to exclude from distribution package
+
+# Development
+.git/
+.github/
+.gitignore
+.gitattributes
+.editorconfig
+.distignore
+
+# Dependencies - dev only
+node_modules/
+vendor/bin/
+vendor/squizlabs/
+vendor/phpunit/
+vendor/mockery/
+vendor/brain/
+vendor/dealerdirect/
+
+# Build tools
+webpack.config.js
+composer.json
+composer.lock
+package.json
+package-lock.json
+phpcs.xml
+phpstan.neon
+phpunit.xml
+.eslintrc.js
+.babelrc
+
+# Tests
+tests/
+bin/
+
+# Documentation - dev only
+docs/70-reviews/
+docs/80-learning/
+docs/90-archive/
+*.log
+
+# Build artifacts
+dist/stats.json
+coverage/
+.phpunit.result.cache
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+*.tmp
+*.temp
+/tmp/
+
+# Archive
+archive/

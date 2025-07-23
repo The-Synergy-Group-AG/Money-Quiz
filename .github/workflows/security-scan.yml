@@ -1,0 +1,92 @@
+name: Security Scan
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop, v7-clean-implementation]
+  schedule:
+    - cron: '0 0 * * *'  # Daily scan at midnight UTC
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          tools: composer
+      
+      - name: Run Security Pattern Checks
+        run: |
+          echo "🔍 Checking for SQL injection patterns..."
+          if grep -r "wpdb->query.*\$_" --include="*.php" .; then
+            echo "❌ Potential SQL injection found - use prepared statements"
+            exit 1
+          fi
+          
+          echo "🔍 Checking for XSS vulnerabilities..."
+          if grep -r "echo \$_" --include="*.php" .; then
+            echo "❌ Potential XSS vulnerability found - escape all output"
+            exit 1
+          fi
+          
+          echo "🔍 Checking for direct file access protection..."
+          files_without_abspath=$(find src/ -name "*.php" -type f | while read file; do
+            if ! grep -q "defined.*ABSPATH" "$file"; then
+              echo "$file"
+            fi
+          done)
+          
+          if [ ! -z "$files_without_abspath" ]; then
+            echo "❌ Files without ABSPATH check found:"
+            echo "$files_without_abspath"
+            exit 1
+          fi
+          
+          echo "🔍 Checking for debug code..."
+          if grep -r "var_dump\|print_r\|console\.log" --include="*.php" --include="*.js" .; then
+            echo "❌ Debug code found - remove before production"
+            exit 1
+          fi
+          
+          echo "✅ Basic security checks passed"
+      
+      - name: Install dependencies
+        run: |
+          composer install --no-progress --prefer-dist --optimize-autoloader
+          if [ -f package.json ]; then
+            npm ci --production
+          fi
+      
+      - name: Composer Security Audit
+        run: |
+          echo "🔍 Running Composer security audit..."
+          composer audit || exit 1
+      
+      - name: NPM Security Audit
+        if: ${{ hashFiles('package-lock.json') != '' }}
+        run: |
+          echo "🔍 Running NPM security audit..."
+          npm audit --production --audit-level=high || exit 1
+      
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'money-quiz-v7'
+          path: '.'
+          format: 'HTML'
+          args: >
+            --enableRetired
+            --enableExperimental
+      
+      - name: Upload OWASP results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: dependency-check-report
+          path: reports/

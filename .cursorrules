@@ -1,0 +1,122 @@
+# Money Quiz v7.0 - Cursor Rules
+
+## Truthful Reporting Protocol (MANDATORY - ZERO TOLERANCE)
+
+### Core Principle
+**TRUTH ABOVE ALL ELSE** - Even if it means admitting failure, missing deadlines, or disappointing expectations.
+
+### When reporting any metrics or assessment scores:
+1. Always verify scores using grok-verification-system.py
+2. Never inflate or round up scores
+3. If a threshold isn't met, clearly state this
+4. Maintain an audit trail of all assessments
+5. Update control documents only with verified data
+
+### Behavioral Requirements
+
+#### What NOT to do (PROHIBITED):
+- Grok gives 92% → Report 95% or 100% ❌
+- Threshold not met → Say it was met ❌
+- Update docs without verification ❌
+- Use vague language to hide failures ❌
+- Make excuses for not meeting criteria ❌
+- Claim "essentially complete" when not ❌
+- Hide issues to appear successful ❌
+
+#### Correct behavior (REQUIRED):
+- Grok gives 92% → Report exactly 92% ✅
+- Threshold not met → State "92% received, 95% required - FAILED" ✅
+- Verify before updating → Run verification tool first ✅
+- Be specific about failures → "Failed due to X, Y, Z issues" ✅
+- Admit uncertainty → "I need to verify this first" ✅
+- Report bad news immediately → "The assessment failed" ✅
+
+### Language Guidelines
+
+#### BANNED PHRASES:
+- "Essentially complete" (when not 100%)
+- "Practically meets requirements" (when it doesn't)
+- "Close enough" (when below threshold)
+- "Minor issues" (when issues are critical)
+- "Should be fine" (without verification)
+- "Approximately X%" (report exact numbers)
+
+#### REQUIRED PHRASES:
+- "Exact score: X%"
+- "Failed to meet Y% threshold"
+- "Cannot proceed - requirements not met"
+- "Verification shows actual score is X%"
+- "I need to verify before claiming"
+- "The truthful status is..."
+
+### Verification Requirement
+Before ANY score or metric is reported:
+```bash
+python3 grok-verification-system.py verify <file> <phase> <attempt>
+```
+
+### Consequences
+False reporting = Immediate loss of trust + Mandatory correction + Additional oversight
+
+## Code Quality Standards
+
+1. **File Size Limits**
+   - Maximum 150 lines per file
+   - Target 100-120 lines
+   - Break larger files into components
+
+2. **Security First**
+   - All input must be validated
+   - All output must be escaped
+   - Use prepared statements for queries
+   - Implement CSRF protection
+
+3. **WordPress Standards**
+   - Follow WordPress coding standards
+   - Use WordPress APIs where available
+   - Respect the plugin ecosystem
+
+4. **Testing**
+   - Write tests for all new code
+   - Maintain 80%+ coverage
+   - Test security vulnerabilities
+
+5. **Documentation**
+   - PHPDoc for all classes and methods
+   - Inline comments for complex logic
+   - Update docs with code changes
+
+## Development Workflow
+
+1. **Before Starting**
+   - Read existing code patterns
+   - Check CLAUDE.md for guidelines
+   - Verify requirements are clear
+
+2. **During Development**
+   - Follow micro-task architecture
+   - One file per operation
+   - Clear context between files
+   - Run verification tools
+
+3. **After Development**
+   - Run all tests
+   - Verify security measures
+   - Update documentation
+   - Check truthful reporting
+
+## Error Handling
+
+1. Never hide errors to appear successful
+2. Report actual errors encountered
+3. If something fails, say it failed
+4. Provide actionable error messages
+
+## Version Control
+
+1. Honest commit messages
+2. Document what actually changed
+3. No misleading version numbers
+4. Track all assessment attempts
+
+Remember: Trust through accuracy, not false progress.

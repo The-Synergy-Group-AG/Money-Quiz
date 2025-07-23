@@ -1,0 +1,135 @@
+name: Deployment Validation
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:  # Allow manual trigger for testing
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          tools: composer
+      
+      - name: Pre-deployment Security Checks
+        run: |
+          echo "🔐 Running pre-deployment security validation..."
+          
+          # No debug code
+          echo "Checking for debug code..."
+          if grep -r "var_dump\|console\.log\|print_r\|error_log\|WP_DEBUG" --include="*.php" --include="*.js" .; then
+            echo "❌ Debug code found in production build"
+            exit 1
+          fi
+          
+          # No TODO comments
+          echo "Checking for TODO comments..."
+          if grep -r "TODO\|FIXME\|XXX\|HACK" --include="*.php" .; then
+            echo "❌ Unresolved TODO comments found"
+            exit 1
+          fi
+          
+          # No development dependencies
+          echo "Checking composer dependencies..."
+          if grep -q "require-dev" composer.json && [ -d "vendor" ]; then
+            composer install --no-dev --optimize-autoloader
+          fi
+          
+          echo "✅ Security checks passed"
+      
+      - name: Required Files Check
+        run: |
+          echo "📋 Checking required WordPress plugin files..."
+          
+          required_files=(
+            "money-quiz.php"
+            "uninstall.php"
+            "readme.txt"
+            "LICENSE"
+          )
+          
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Required file missing: $file"
+              exit 1
+            fi
+          done
+          
+          echo "✅ All required files present"
+      
+      - name: Plugin Header Validation
+        run: |
+          echo "📄 Validating plugin headers..."
+          
+          if ! grep -q "Plugin Name:" money-quiz.php; then
+            echo "❌ Plugin Name header missing"
+            exit 1
+          fi
+          
+          if ! grep -q "Version:" money-quiz.php; then
+            echo "❌ Version header missing"
+            exit 1
+          fi
+          
+          if ! grep -q "Requires at least:" money-quiz.php; then
+            echo "❌ WordPress version requirement missing"
+            exit 1
+          fi
+          
+          echo "✅ Plugin headers valid"
+      
+      - name: Grok Approval Check
+        run: |
+          echo "🤖 Checking for Grok approval..."
+          
+          # Check if latest Grok review exists and passed
+          if [ -f "docs/70-reviews/01-grok-reviews/final-review.md" ]; then
+            if grep -q "Rating:.*9[5-9]%" "docs/70-reviews/01-grok-reviews/final-review.md"; then
+              echo "✅ Grok approval found (95%+)"
+            else
+              echo "❌ Grok approval below 95% threshold"
+              exit 1
+            fi
+          else
+            echo "❌ Final Grok review not found"
+            exit 1
+          fi
+      
+      - name: Build Release Package
+        run: |
+          echo "📦 Building release package..."
+          
+          # Clean build
+          rm -rf build/
+          mkdir -p build/money-quiz
+          
+          # Copy files
+          rsync -av --exclude-from='.distignore' . build/money-quiz/
+          
+          # Create zip
+          cd build
+          zip -r money-quiz-v7.zip money-quiz/
+          
+          echo "✅ Release package created: money-quiz-v7.zip"
+      
+      - name: Upload Release Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: money-quiz-release
+          path: build/money-quiz-v7.zip
+      
+      - name: Final Validation
+        run: |
+          echo "🎯 Final deployment validation..."
+          echo "✅ All deployment checks passed!"
+          echo ""
+          echo "⚠️  Remember: This plugin requires 95%+ Grok approval!"
+          echo "⚠️  Ensure final testing in staging environment before production deployment"

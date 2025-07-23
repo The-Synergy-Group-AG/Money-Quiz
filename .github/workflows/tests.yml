@@ -1,0 +1,127 @@
+name: Test Suite
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop, v7-clean-implementation]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        php-version: ['7.4', '8.0', '8.1']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: xdebug
+          tools: composer
+      
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+      
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
+      
+      - name: Run Unit Tests
+        run: |
+          vendor/bin/phpunit --testsuite unit --coverage-text --coverage-clover=coverage.xml
+      
+      - name: Check Coverage
+        if: matrix.php-version == '7.4'
+        run: |
+          coverage=$(vendor/bin/phpunit --testsuite unit --coverage-text | grep "Lines:" | awk '{print $2}' | sed 's/%//')
+          echo "Code coverage: $coverage%"
+          if (( $(echo "$coverage < 80" | bc -l) )); then
+            echo "❌ Code coverage is below 80% threshold"
+            exit 1
+          fi
+          echo "✅ Code coverage meets requirements"
+      
+      - name: Upload Coverage
+        if: matrix.php-version == '7.4'
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+  
+  integration-tests:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          tools: composer
+      
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
+      
+      - name: Setup WordPress Test Environment
+        run: |
+          if [ -f "bin/install-wp-tests.sh" ]; then
+            bash bin/install-wp-tests.sh wordpress_test root root localhost latest
+          else
+            echo "⚠️ WordPress test installer not found - skipping integration tests"
+          fi
+      
+      - name: Run Integration Tests
+        run: |
+          if [ -d "tests/Integration" ]; then
+            vendor/bin/phpunit --testsuite integration
+          else
+            echo "⚠️ Integration test suite not found - skipping"
+          fi
+  
+  quality-checks:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          tools: composer, phpstan
+      
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
+      
+      - name: Run PHPStan
+        run: |
+          if [ -f "phpstan.neon" ]; then
+            vendor/bin/phpstan analyse --memory-limit=256M
+          else
+            echo "⚠️ PHPStan configuration not found - skipping"
+          fi

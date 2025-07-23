@@ -1,0 +1,24 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 6
+    paths:
+        - src/
+        - money-quiz.php
+    excludePaths:
+        - tests/
+        - vendor/
+    bootstrapFiles:
+        - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
+    scanDirectories:
+        - src/
+    treatPhpDocTypesAsCertain: false
+    checkGenericClassInNonGenericObjectType: false
+    ignoreErrors:
+        # Ignore WordPress global functions
+        - '#Function (__|_e|esc_html__|esc_html_e|wp_die) not found#'
+        # Allow dynamic properties for WordPress compatibility
+        - '#Access to an undefined property#'
+    parallel:
+        maximumNumberOfProcesses: 4

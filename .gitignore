@@ -1,0 +1,32 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Build artifacts
+/dist/
+/build/
+*.zip
+
+# Development
+.env
+.env.local
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Testing
+/coverage/
+.phpunit.result.cache
+
+# WordPress
+/wordpress/
+
+# Temporary
+*.tmp
+*.temp
+/tmp/
