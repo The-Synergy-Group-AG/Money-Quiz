@@ -37,6 +37,13 @@ class RateLimiter {
 	private string $table_prefix;
 
 	/**
+	 * Security logger.
+	 *
+	 * @var SecurityLogger|null
+	 */
+	private ?SecurityLogger $logger = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 7.0.0
@@ -47,6 +54,15 @@ class RateLimiter {
 	public function __construct( \wpdb $db, string $table_prefix ) {
 		$this->db = $db;
 		$this->table_prefix = $table_prefix;
+	}
+
+	/**
+	 * Set security logger.
+	 *
+	 * @param SecurityLogger $logger Security logger.
+	 */
+	public function setLogger( SecurityLogger $logger ): void {
+		$this->logger = $logger;
 	}
 
 	/**
@@ -84,6 +100,12 @@ class RateLimiter {
 
 		if ( $attempts >= $limit ) {
 			$retry_after = $this->get_retry_after( $identifier, $action, $window );
+			
+			// Log rate limit exceeded event
+			if ( $this->logger ) {
+				$this->logger->logRateLimitExceeded( $action, $identifier, $limit );
+			}
+			
 			throw new RateLimitExceededException(
 				sprintf(
 					/* translators: %d: seconds until retry */

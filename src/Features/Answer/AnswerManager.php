@@ -139,13 +139,51 @@ class AnswerManager
     public function calculateScore(int $attemptId): array
     {
         $answers = $this->getAttemptAnswers($attemptId);
+        
+        if (empty($answers)) {
+            return [
+                'total_score' => 0,
+                'max_score' => 0,
+                'percentage' => 0,
+                'details' => []
+            ];
+        }
+        
+        // Get attempt to find quiz ID
+        $attempt = $this->attemptRepository->findById($attemptId);
+        if (!$attempt) {
+            throw new ServiceException('Attempt not found');
+        }
+        
+        // Load all questions at once for better performance
+        $questions = $this->questionRepository->findByQuizId($attempt->getQuizId());
+        $questionMap = [];
+        foreach ($questions as $question) {
+            $questionMap[$question->getId()] = $question;
+        }
+        
+        // Cache question types to avoid recreating them
+        $typeCache = [];
+        
         $totalScore = 0;
         $maxScore = 0;
         $details = [];
         
         foreach ($answers as $answer) {
-            $question = $this->questionRepository->findById($answer->getQuestionId());
-            $type = $this->typeFactory->create($question->getType());
+            $questionId = $answer->getQuestionId();
+            
+            if (!isset($questionMap[$questionId])) {
+                continue; // Skip answers for deleted questions
+            }
+            
+            $question = $questionMap[$questionId];
+            $questionType = $question->getType();
+            
+            // Use cached type instance or create new one
+            if (!isset($typeCache[$questionType])) {
+                $typeCache[$questionType] = $this->typeFactory->create($questionType);
+            }
+            $type = $typeCache[$questionType];
             
             $score = $type->calculateScore($question, $answer->getValue());
             $isCorrect = $type->isCorrect($question, $answer->getValue());

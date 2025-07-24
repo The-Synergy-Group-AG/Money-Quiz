@@ -8,6 +8,7 @@ use MoneyQuiz\Domain\Entities\Attempt;
 use MoneyQuiz\Features\Question\QuestionRepository;
 use MoneyQuiz\Features\Quiz\Management\QuizSettings;
 use MoneyQuiz\Security\OutputEscaper;
+use MoneyQuiz\Security\CaptchaService;
 
 /**
  * Handles quiz display and rendering
@@ -19,7 +20,8 @@ class QuizDisplay
         private OutputEscaper $escaper,
         private QuizRenderer $renderer,
         private ProgressTracker $progressTracker,
-        private TimerManager $timerManager
+        private TimerManager $timerManager,
+        private CaptchaService $captchaService
     ) {}
 
     /**
@@ -27,10 +29,14 @@ class QuizDisplay
      */
     public function renderStartPage(Quiz $quiz): string
     {
+        $userId = get_current_user_id();
+        
         $data = [
             'quiz' => $this->prepareQuizData($quiz),
             'settings' => $quiz->getSettings(),
-            'requires_registration' => $quiz->requiresRegistration()
+            'requires_registration' => $quiz->requiresRegistration(),
+            'captcha_required' => $this->captchaService->isRequired($userId),
+            'captcha_html' => $this->captchaService->isRequired($userId) ? $this->captchaService->renderField() : ''
         ];
 
         return $this->renderer->renderTemplate('quiz-start', $data);
@@ -87,7 +93,7 @@ class QuizDisplay
         $currentQuestion = $questions[$page - 1] ?? null;
 
         if (!$currentQuestion) {
-            throw new \Exception('Invalid question page');
+            throw new ServiceException('Invalid question page');
         }
 
         $data = [

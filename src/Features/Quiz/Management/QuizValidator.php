@@ -98,8 +98,8 @@ class QuizValidator
         try {
             return $this->validator->validateArray($settings, $settingsRules);
         } catch (\Exception $e) {
-            // Return empty array if settings validation fails
-            return [];
+            // Re-throw as ServiceException for consistency
+            throw new ServiceException('Invalid quiz settings: ' . $e->getMessage());
         }
     }
 }
