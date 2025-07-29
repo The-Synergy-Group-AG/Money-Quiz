@@ -1,0 +1,21 @@
+# Code Owners for Money Quiz Plugin
+# These owners will be automatically requested for review
+
+# Global owners
+* @The-Synergy-Group-AG/money-quiz-team
+
+# Core plugin files
+/money-quiz.php @The-Synergy-Group-AG/plugin-leads
+/moneyquiz.php @The-Synergy-Group-AG/plugin-leads
+
+# Security-sensitive files
+/includes/class-legacy-function-router.php @The-Synergy-Group-AG/security-team
+/includes/class-legacy-db-wrapper.php @The-Synergy-Group-AG/security-team
+/src/Security/ @The-Synergy-Group-AG/security-team
+
+# Database and migrations
+/src/Database/ @The-Synergy-Group-AG/database-team
+/includes/class-database-version-tracker.php @The-Synergy-Group-AG/database-team
+
+# GitHub workflows - require admin approval
+/.github/ @The-Synergy-Group-AG/admins
