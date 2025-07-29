@@ -1,0 +1,275 @@
+/**
+ * Integration Settings Styles
+ */
+
+.mq-integration-dashboard {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+/* Status Card */
+.mq-status-card,
+.mq-settings-card,
+.mq-tools-card,
+.mq-metrics-card {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.mq-status-card h2,
+.mq-settings-card h2,
+.mq-tools-card h2,
+.mq-metrics-card h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #23282d;
+    font-size: 18px;
+}
+
+/* Status Grid */
+.mq-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.mq-status-item {
+    text-align: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.mq-status-label {
+    display: block;
+    color: #666;
+    font-size: 12px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.mq-status-value {
+    display: block;
+    font-size: 24px;
+    font-weight: 600;
+    color: #23282d;
+}
+
+.mq-status-value.healthy {
+    color: #46b450;
+}
+
+.mq-status-value.warning {
+    color: #ffb900;
+}
+
+.mq-status-value.error {
+    color: #dc3232;
+}
+
+/* Settings Form */
+.mq-settings-card .form-table th {
+    width: 250px;
+}
+
+input[type="range"] {
+    width: 300px;
+    vertical-align: middle;
+}
+
+#rollout_value {
+    display: inline-block;
+    width: 50px;
+    text-align: center;
+    font-weight: 600;
+    margin-left: 10px;
+}
+
+/* Function Flags */
+.mq-function-flags {
+    display: grid;
+    gap: 10px;
+    max-width: 600px;
+}
+
+.mq-function-toggle {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.mq-function-toggle:hover {
+    background: #f0f0f1;
+}
+
+.mq-function-toggle.enabled {
+    background: #e8f5e9;
+    border-color: #46b450;
+}
+
+.mq-function-toggle input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+.mq-function-name {
+    flex: 1;
+    font-family: monospace;
+    font-size: 13px;
+}
+
+.mq-function-risk {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+}
+
+.mq-risk-low {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.mq-risk-medium {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.mq-risk-high {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Tools */
+.mq-tool-item {
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.mq-tool-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.mq-tool-item h3 {
+    margin: 0 0 10px;
+    font-size: 16px;
+}
+
+.mq-tool-item p {
+    margin: 0 0 15px;
+    color: #666;
+}
+
+.mq-output {
+    margin-top: 15px;
+    padding: 10px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.mq-output pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 12px;
+}
+
+.mq-output .spinner {
+    float: none;
+    margin: 20px auto;
+    display: block;
+}
+
+/* Metrics Table */
+.mq-metrics-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.mq-metrics-table th,
+.mq-metrics-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.mq-metrics-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    font-size: 12px;
+}
+
+.mq-metrics-table td {
+    font-size: 14px;
+}
+
+.mq-metrics-table td.positive {
+    color: #46b450;
+}
+
+.mq-metrics-table td.negative {
+    color: #dc3232;
+}
+
+/* Responsive */
+@media (min-width: 1200px) {
+    .mq-integration-dashboard {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .mq-status-card,
+    .mq-metrics-card {
+        grid-column: span 2;
+    }
+}
+
+/* Notices */
+.notice {
+    margin: 15px 0;
+}
+
+.notice p {
+    margin: 0.5em 0;
+    padding: 2px;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .mq-status-card,
+    .mq-settings-card,
+    .mq-tools-card,
+    .mq-metrics-card {
+        background: #1e1e1e;
+        border-color: #3c434a;
+        color: #ccc;
+    }
+    
+    .mq-status-item,
+    .mq-function-toggle,
+    .mq-output,
+    .mq-metrics-table th {
+        background: #2c3338;
+    }
+    
+    .mq-status-card h2,
+    .mq-settings-card h2,
+    .mq-tools-card h2,
+    .mq-metrics-card h2 {
+        color: #fff;
+    }
+}

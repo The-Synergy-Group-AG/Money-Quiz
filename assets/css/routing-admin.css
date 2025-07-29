@@ -1,0 +1,282 @@
+/**
+ * Money Quiz Routing Admin Styles
+ * 
+ * @package MoneyQuiz
+ * @since 1.5.0
+ */
+
+/* Cards */
+.mq-card {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    margin: 20px 0;
+    padding: 20px;
+}
+
+.mq-card h2 {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+/* Health Status */
+.mq-health-indicator {
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+    margin: 20px 0;
+}
+
+.mq-health-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.mq-health-good .mq-health-icon {
+    background: #46b450;
+}
+
+.mq-health-warning .mq-health-icon {
+    background: #ffb900;
+}
+
+.mq-health-critical .mq-health-icon {
+    background: #dc3232;
+}
+
+.mq-health-issues {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 20px 0;
+}
+
+.mq-health-issues h3 {
+    margin-top: 0;
+}
+
+.mq-health-issues ul {
+    margin-bottom: 0;
+}
+
+/* Metrics Grid */
+.mq-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.mq-metric {
+    text-align: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.mq-metric-label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.mq-metric-value {
+    display: block;
+    font-size: 24px;
+    font-weight: 600;
+    color: #23282d;
+}
+
+/* Feature Flags */
+.mq-flag-slider {
+    width: 150px;
+    margin-right: 10px;
+}
+
+.mq-flag-value {
+    display: inline-block;
+    width: 50px;
+    text-align: right;
+    font-weight: 600;
+}
+
+.mq-flag-save {
+    margin-left: 10px;
+}
+
+/* Rollback Controls */
+.mq-rollback-controls button {
+    margin-right: 10px;
+}
+
+.mq-last-rollback {
+    background: #f0f0f1;
+    border-radius: 4px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.mq-last-rollback h3 {
+    margin-top: 0;
+}
+
+/* Traffic Statistics */
+.mq-stats-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.mq-stat {
+    text-align: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.mq-stat-label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.mq-stat-value {
+    display: block;
+    font-size: 20px;
+    font-weight: 600;
+    color: #23282d;
+}
+
+/* Dashboard Widget */
+.mq-dashboard-widget {
+    padding: 10px 0;
+}
+
+.mq-widget-status {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.mq-widget-status .mq-health-icon {
+    width: 12px;
+    height: 12px;
+    margin-right: 8px;
+}
+
+.mq-health-good.mq-widget-status {
+    background: #d4edda;
+    color: #155724;
+}
+
+.mq-health-warning.mq-widget-status {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.mq-health-critical.mq-widget-status {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.mq-widget-alert {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.mq-widget-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.mq-widget-metric {
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.mq-widget-metric .label {
+    display: block;
+    font-size: 11px;
+    color: #666;
+}
+
+.mq-widget-metric .value {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    color: #23282d;
+}
+
+.mq-widget-link {
+    margin: 0;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+    .mq-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .mq-stats-summary {
+        grid-template-columns: 1fr;
+    }
+    
+    .mq-flag-slider {
+        width: 100px;
+    }
+}
+
+/* Animation for live updates */
+.mq-metric-value,
+.mq-stat-value {
+    transition: color 0.3s ease;
+}
+
+.mq-metric-value.updated,
+.mq-stat-value.updated {
+    color: #0073aa;
+}
+
+/* Loading states */
+.mq-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.mq-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #0073aa;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

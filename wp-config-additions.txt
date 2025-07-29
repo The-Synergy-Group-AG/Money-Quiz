@@ -1,0 +1,20 @@
+/**
+ * Money Quiz Integration Configuration
+ * 
+ * Add these lines to your wp-config.php file, just before the line that says:
+ * /* That's all, stop editing! Happy publishing. */
+ */
+
+// Enable WordPress debugging with logging
+define( 'WP_DEBUG', true );
+define( 'WP_DEBUG_LOG', true );
+define( 'WP_DEBUG_DISPLAY', false );
+
+// Enable Money Quiz error logging
+define( 'MONEY_QUIZ_ERROR_LOGGING', true );
+
+// Optional: Set initial rollout percentage (default is 10%)
+define( 'MONEY_QUIZ_INITIAL_ROLLOUT', 10 );
+
+// Optional: Enable verbose logging for development
+// define( 'MONEY_QUIZ_VERBOSE_LOG', true );

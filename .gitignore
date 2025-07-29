@@ -1,0 +1,66 @@
+# WordPress
+wp-config.php
+wp-content/uploads/
+wp-content/cache/
+wp-content/upgrade/
+wp-content/backup-db/
+wp-content/backups/
+wp-content/blogs.dir/
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+
+# Logs
+*.log
+logs/
+error_log
+access_log
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE Files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Composer
+/vendor/
+composer.lock
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build files
+dist/
+build/
+
+# Environment
+.env
+.env.*
+
+# Backup files
+*.bak
+*.backup
+*~
+*.swp
+*.swo
+
+# Cache
+cache/
+temp/
+tmp/
+
+# Money Quiz specific
+/money-quiz-old/
+/legacy/
+*.sql
+*.zip

@@ -1,0 +1,259 @@
+/**
+ * Money Quiz Frontend Styles
+ * Version: 4.0.0
+ */
+
+/* CSS Variables for customization */
+:root {
+    --mq-primary-color: #007cba;
+    --mq-secondary-color: #555;
+    --mq-success-color: #28a745;
+    --mq-error-color: #dc3545;
+    --mq-border-radius: 4px;
+    --mq-transition: all 0.3s ease;
+}
+
+/* Container */
+.money-quiz-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Title and Description */
+.money-quiz-title {
+    font-size: 2em;
+    margin-bottom: 10px;
+    color: var(--mq-primary-color);
+}
+
+.money-quiz-description {
+    font-size: 1.1em;
+    color: var(--mq-secondary-color);
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+/* Progress Bar */
+.money-quiz-progress {
+    margin-bottom: 30px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background-color: #f0f0f0;
+    border-radius: var(--mq-border-radius);
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--mq-primary-color);
+    transition: width 0.5s ease;
+    position: relative;
+}
+
+.progress-text {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: var(--mq-secondary-color);
+}
+
+/* Questions */
+.money-quiz-questions {
+    margin-bottom: 30px;
+}
+
+.money-quiz-question {
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+
+.money-quiz-question.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.question-title {
+    font-size: 1.3em;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Options */
+.question-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.option-label {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border: 2px solid transparent;
+    border-radius: var(--mq-border-radius);
+    cursor: pointer;
+    transition: var(--mq-transition);
+}
+
+.option-label:hover {
+    background-color: #e9ecef;
+    border-color: var(--mq-primary-color);
+}
+
+.option-input {
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.option-input:checked + .option-text {
+    font-weight: bold;
+}
+
+.option-label:has(.option-input:checked) {
+    background-color: var(--mq-primary-color);
+    color: white;
+    border-color: var(--mq-primary-color);
+}
+
+.option-text {
+    flex: 1;
+}
+
+/* Navigation */
+.money-quiz-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+}
+
+.quiz-button {
+    padding: 12px 30px;
+    font-size: 1em;
+    border: none;
+    border-radius: var(--mq-border-radius);
+    cursor: pointer;
+    transition: var(--mq-transition);
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.quiz-prev {
+    background-color: #6c757d;
+    color: white;
+}
+
+.quiz-prev:hover {
+    background-color: #5a6268;
+}
+
+.quiz-next,
+.quiz-submit {
+    background-color: var(--mq-primary-color);
+    color: white;
+}
+
+.quiz-next:hover,
+.quiz-submit:hover {
+    background-color: #0056b3;
+}
+
+.quiz-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Error Messages */
+.money-quiz-error {
+    padding: 15px;
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: var(--mq-border-radius);
+    margin-bottom: 20px;
+}
+
+/* Results */
+.money-quiz-results {
+    animation: fadeIn 0.5s ease;
+}
+
+.money-quiz-result {
+    text-align: center;
+    padding: 40px;
+    background-color: #f8f9fa;
+    border-radius: var(--mq-border-radius);
+}
+
+.result-archetype h4 {
+    font-size: 2em;
+    color: var(--mq-primary-color);
+    margin-bottom: 20px;
+}
+
+.result-score {
+    font-size: 1.2em;
+    margin-top: 20px;
+}
+
+/* Loading State */
+.money-quiz-loading {
+    text-align: center;
+    padding: 40px;
+}
+
+.money-quiz-loading::after {
+    content: '';
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--mq-primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .money-quiz-container {
+        padding: 10px;
+    }
+    
+    .money-quiz-title {
+        font-size: 1.5em;
+    }
+    
+    .question-title {
+        font-size: 1.1em;
+    }
+    
+    .option-label {
+        padding: 12px;
+    }
+    
+    .quiz-button {
+        padding: 10px 20px;
+        font-size: 0.9em;
+    }
+}

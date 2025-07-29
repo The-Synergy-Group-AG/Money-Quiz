@@ -1,14 +1,14 @@
 <?php
 /**
- * @package Business Insights Group AG
+ * @package The Synergy Group AG
  */
 /*
 Plugin Name: Money Quiz
-Plugin URI: https://www.101businessinsights.com/
-Description: Business Insights Group AG
-Version: 3.3
-Author: Business Insights Group AG
-Author URI: https://www.101businessinsights.com/
+Plugin URI: https://thesynergygroup.ch
+Description: The Synergy Group AG Money Personality Quiz Plugin
+Version: 4.0.0
+Author: The Synergy Group AG
+Author URI: https://thesynergygroup.ch
 License: Premium 
 Text Domain: moneyquiz
 */
@@ -26,21 +26,21 @@ if(strpos($mq_plugin_url, 'http') === false) {
 	$mq_plugin_url = (substr($site_url, -1) === '/') ? substr($site_url, 0, -1). $mq_plugin_url : $site_url. $mq_plugin_url;
 }
 
-define( 'MONEYQUIZ_VERSION', '2' );
+// Use the main plugin version constant
+define( 'MONEYQUIZ_VERSION', defined( 'MONEY_QUIZ_VERSION' ) ? MONEY_QUIZ_VERSION : '4.0.0' );
 define( 'MONEYQUIZ__MINIMUM_WP_VERSION', '2' );
 define( 'MONEYQUIZ__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MONEYQUIZ_DELETE_LIMIT', 100000 );
 define( 'MONEYQUIZ_PLUGIN_URL', $mq_plugin_url);
 
-define( 'MONEYQUIZ_BUSINESS_INSIGHTS_EMAIL', 'andre@101businessinsights.info' ); // live email
+// Temporary configuration for deployment
+define( 'MONEYQUIZ_BUSINESS_INSIGHTS_EMAIL', 'andre@thesynergygroup.ch' );
 
-// This is the secret key for API authentication. You configured it in the settings menu of the license manager plugin.
-define('MONEYQUIZ_SPECIAL_SECRET_KEY', '5bcd52f5276855.46942741'); // live server
-#define('MONEYQUIZ_SPECIAL_SECRET_KEY', '5bc3996e2b4a43.53731967'); // local server
+// Temporary configuration for deployment
+define( 'MONEYQUIZ_SPECIAL_SECRET_KEY', '5bcd52f5276855.46942741' );
 
-// This is the URL where API query request will be sent to. This should be the URL of the site where you have installed the main license manager plugin. Get this value from the integration help page.
-define('MONEYQUIZ_LICENSE_SERVER_URL', 'https://www.101businessinsights.com'); // live server url
-#define('MONEYQUIZ_LICENSE_SERVER_URL', 'http://money.reverinfotech.com'); // local server url
+// Temporary configuration for deployment  
+define( 'MONEYQUIZ_LICENSE_SERVER_URL', 'https://thesynergygroup.ch' );
 
 // This is a value that will be recorded in the license manager data so you can identify licenses for this item/product.
 define('MONEYQUIZ_ITEM_REFERENCE', 'MoneyQuiz Plugin Key'); //Rename this constant name so it is specific to your plugin or theme.
