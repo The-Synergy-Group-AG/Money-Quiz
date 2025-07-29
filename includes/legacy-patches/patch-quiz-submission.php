@@ -198,23 +198,24 @@ if ( ! function_exists( 'mq_save_prospect_patched' ) ) {
 
 // Apply patches by replacing original functions
 add_action( 'init', function() {
-    // Rename original functions if they exist
-    if ( function_exists( 'mq_questions_func' ) && ! function_exists( 'mq_questions_func_original' ) ) {
-        eval( 'function mq_questions_func_original( $atts ) { 
-            return mq_questions_func( $atts ); 
-        }' );
+    // CRITICAL SECURITY FIX: Removed eval() - using safe function references
+    global $mq_legacy_functions;
+    
+    if ( ! isset( $mq_legacy_functions ) ) {
+        $mq_legacy_functions = [];
     }
     
-    if ( function_exists( 'mq_process_quiz_ajax' ) && ! function_exists( 'mq_process_quiz_ajax_original' ) ) {
-        eval( 'function mq_process_quiz_ajax_original() { 
-            return mq_process_quiz_ajax(); 
-        }' );
+    // Store original function references safely
+    if ( function_exists( 'mq_questions_func' ) ) {
+        $mq_legacy_functions['mq_questions_func_original'] = 'mq_questions_func';
     }
     
-    if ( function_exists( 'mq_save_prospect' ) && ! function_exists( 'mq_save_prospect_original' ) ) {
-        eval( 'function mq_save_prospect_original( $data ) { 
-            return mq_save_prospect( $data ); 
-        }' );
+    if ( function_exists( 'mq_process_quiz_ajax' ) ) {
+        $mq_legacy_functions['mq_process_quiz_ajax_original'] = 'mq_process_quiz_ajax';
+    }
+    
+    if ( function_exists( 'mq_save_prospect' ) ) {
+        $mq_legacy_functions['mq_save_prospect_original'] = 'mq_save_prospect';
     }
     
     // Replace AJAX actions
