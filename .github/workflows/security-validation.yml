@@ -1,0 +1,198 @@
+name: Security Validation
+
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    branches: [ main, enhanced-v4.0 ]
+
+jobs:
+  critical-security-check:
+    name: Critical Security Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: 🚨 CRITICAL - Check for eval() usage
+      id: eval_check
+      run: |
+        echo "Checking for eval() function usage..."
+        if grep -r "eval(" --include="*.php" . --exclude-dir=vendor --exclude-dir=node_modules; then
+          echo "❌ CRITICAL SECURITY FAILURE: eval() function found!"
+          echo "This is a CRITICAL security vulnerability that allows remote code execution!"
+          echo ""
+          echo "Files containing eval():"
+          grep -r "eval(" --include="*.php" . --exclude-dir=vendor --exclude-dir=node_modules -l
+          echo ""
+          echo "::error::CRITICAL: eval() usage detected - this commit MUST be rejected!"
+          exit 1
+        else
+          echo "✅ PASS: No eval() usage found"
+        fi
+    
+    - name: Check for exec/system calls
+      run: |
+        echo "Checking for dangerous function calls..."
+        if grep -rE "(exec|system|passthru|shell_exec|proc_open|popen)\s*\(" --include="*.php" . --exclude-dir=vendor; then
+          echo "⚠️  WARNING: Potentially dangerous function calls detected"
+          echo "::warning::Dangerous functions found - review required"
+        else
+          echo "✅ PASS: No dangerous exec functions"
+        fi
+    
+    - name: Check for SQL injection vulnerabilities
+      run: |
+        echo "Checking for SQL injection vulnerabilities..."
+        if grep -rE "\\\$wpdb->(query|get_results|get_var|get_row)\s*\([^)]*\\\$_(GET|POST|REQUEST|COOKIE)" --include="*.php" .; then
+          echo "❌ CRITICAL: Direct user input in SQL queries!"
+          echo "::error::SQL injection vulnerability detected!"
+          exit 1
+        else
+          echo "✅ PASS: No direct SQL injection vulnerabilities"
+        fi
+    
+    - name: Check for hardcoded secrets
+      run: |
+        echo "Checking for hardcoded secrets..."
+        # Check for API keys
+        if grep -rE "(api_key|apikey|api-key)\s*=\s*['\"][a-zA-Z0-9]{20,}['\"]" --include="*.php" . --exclude-dir=vendor | grep -v example | grep -v config; then
+          echo "⚠️  WARNING: Potential API keys found"
+          echo "::warning::Hardcoded API keys detected"
+        fi
+        
+        # Check for passwords
+        if grep -rE "(password|passwd|pwd)\s*=\s*['\"][^'\"]+['\"]" --include="*.php" . --exclude-dir=vendor | grep -v example | grep -v config; then
+          echo "⚠️  WARNING: Potential passwords found"
+          echo "::warning::Hardcoded passwords detected"
+        fi
+    
+    - name: Validate version consistency
+      run: |
+        echo "Checking version consistency..."
+        if [ -f "money-quiz.php" ]; then
+          VERSION=$(grep -E "^\s*\*\s*Version:" money-quiz.php | sed 's/.*Version:\s*//' | tr -d ' ')
+          echo "Plugin version: $VERSION"
+          
+          if [ "$VERSION" != "4.0.0" ]; then
+            echo "⚠️  WARNING: Version mismatch"
+            echo "::warning::Expected version 4.0.0, found $VERSION"
+          else
+            echo "✅ PASS: Version correct"
+          fi
+        fi
+    
+    - name: Security score summary
+      if: always()
+      run: |
+        echo ""
+        echo "======================================"
+        echo "SECURITY VALIDATION SUMMARY"
+        echo "======================================"
+        echo ""
+        if [ "${{ steps.eval_check.outcome }}" = "failure" ]; then
+          echo "❌ FAILED: eval() usage detected - CRITICAL VULNERABILITY"
+          echo "This commit contains remote code execution vulnerabilities!"
+          echo ""
+          echo "ACTION REQUIRED:"
+          echo "1. Remove ALL eval() calls immediately"
+          echo "2. Use safe alternatives"
+          echo "3. Re-run security validation"
+          exit 1
+        else
+          echo "✅ Security validation completed"
+        fi
+
+  phpstan-security:
+    name: PHPStan Security Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.0'
+        tools: phpstan
+    
+    - name: Run PHPStan with security rules
+      run: |
+        # Create PHPStan config with security focus
+        cat > phpstan-security.neon << 'EOF'
+        parameters:
+            level: max
+            paths:
+                - .
+            excludePaths:
+                - vendor/
+                - tests/
+            ignoreErrors: []
+            reportUnmatchedIgnoredErrors: true
+            checkMissingIterableValueType: true
+            checkGenericClassInNonGenericObjectType: true
+        EOF
+        
+        phpstan analyse -c phpstan-security.neon --error-format=github || true
+
+  security-headers:
+    name: Security Headers Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check for security headers implementation
+      run: |
+        echo "Checking for security header implementations..."
+        
+        # Check for X-Frame-Options
+        if ! grep -r "X-Frame-Options" --include="*.php" .; then
+          echo "⚠️  WARNING: X-Frame-Options header not found"
+        fi
+        
+        # Check for Content-Security-Policy
+        if ! grep -r "Content-Security-Policy" --include="*.php" .; then
+          echo "⚠️  WARNING: Content-Security-Policy header not found"
+        fi
+        
+        # Check for nonce implementation
+        if grep -r "wp_nonce" --include="*.php" . > /dev/null; then
+          echo "✅ Nonce implementation found"
+        else
+          echo "⚠️  WARNING: No nonce implementation found"
+        fi
+
+  dependency-check:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Composer audit
+      if: ${{ hashFiles('composer.lock') != '' }}
+      run: |
+        composer audit || echo "::warning::Composer audit found vulnerabilities"
+
+  security-gate:
+    name: Security Gate Decision
+    needs: [critical-security-check, phpstan-security, security-headers]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Security gate status
+      run: |
+        if [ "${{ needs.critical-security-check.result }}" = "failure" ]; then
+          echo "❌ SECURITY GATE FAILED"
+          echo ""
+          echo "This code contains CRITICAL security vulnerabilities:"
+          echo "- eval() usage detected (Remote Code Execution risk)"
+          echo ""
+          echo "This commit MUST NOT be merged!"
+          exit 1
+        else
+          echo "✅ Security gate passed"
+        fi
