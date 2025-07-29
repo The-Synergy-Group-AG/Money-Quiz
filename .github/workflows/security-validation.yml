@@ -18,12 +18,13 @@ jobs:
       id: eval_check
       run: |
         echo "Checking for eval() function usage..."
-        if grep -r "eval(" --include="*.php" . --exclude-dir=vendor --exclude-dir=node_modules; then
+        # Look for actual eval() function calls, not comments or strings
+        if grep -rP "^\s*[^\/\#]*\beval\s*\(" --include="*.php" . --exclude-dir=vendor --exclude-dir=node_modules | grep -v "//.*eval(" | grep -v "#.*eval(" | grep -v "'.*eval\(" | grep -v '".*eval\('; then
           echo "❌ CRITICAL SECURITY FAILURE: eval() function found!"
           echo "This is a CRITICAL security vulnerability that allows remote code execution!"
           echo ""
           echo "Files containing eval():"
-          grep -r "eval(" --include="*.php" . --exclude-dir=vendor --exclude-dir=node_modules -l
+          grep -rP "^\s*[^\/\#]*\beval\s*\(" --include="*.php" . --exclude-dir=vendor --exclude-dir=node_modules -l | grep -v "//.*eval(" | grep -v "#.*eval("
           echo ""
           echo "::error::CRITICAL: eval() usage detected - this commit MUST be rejected!"
           exit 1
